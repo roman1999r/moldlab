@@ -1,0 +1,12 @@
+# Supabase Edge Functions used by the public React storefront.
+# These functions are intentionally callable without a Supabase JWT because
+# the storefront allows guest checkout. Secrets stay server-side in Supabase.
+
+[functions.notify-new-order]
+verify_jwt = false
+
+[functions.notify-custom-order]
+verify_jwt = false
+
+[functions.notify-order-status]
+verify_jwt = false

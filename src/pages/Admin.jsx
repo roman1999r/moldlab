@@ -5,6 +5,14 @@ import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
+async function notifyStatus(orderId, type = 'order') {
+    if (!supabase) return;
+    const { error } = await supabase.functions.invoke('notify-order-status', {
+        body: { order_id: orderId, type },
+    });
+    if (error) console.error('Telegram status notification failed:', error);
+}
+
 const emptyProduct = { id: null, name: '', category: 'Фігурки', description: '', price: '', old_price: '', size: '', cells: 1, image_url: '', model_url: '', featured: false };
 const statuses = ['new','confirmed','in_progress','ready','shipped','completed','cancelled'];
 const statusLabels = { new:'Нове', confirmed:'Підтверджено', in_progress:'В роботі', ready:'Готово', shipped:'Відправлено', completed:'Завершено', cancelled:'Скасовано' };
@@ -30,8 +38,8 @@ export default function Admin() {
   async function saveProduct(e){e.preventDefault();setSaving(true);setMessage('');const payload={name:editing.name,category:editing.category,description:editing.description,price:Number(editing.price),old_price:editing.old_price?Number(editing.old_price):null,size:editing.size,cells:Number(editing.cells)||1,image_url:editing.image_url,model_url:editing.model_url,featured:Boolean(editing.featured)};const query=editing.id?supabase.from('products').update(payload).eq('id',editing.id):supabase.from('products').insert(payload);const {error}=await query;if(error)setMessage(error.message);else{setEditing(null);await loadAll()}setSaving(false)}
   async function removeProduct(id){if(!window.confirm('Delete this product?'))return;const {error}=await supabase.from('products').delete().eq('id',id);if(error)setMessage(error.message);else loadAll()}
   async function uploadAsset(file,type){if(!file||!supabase)return;const isModel=type==='model_url';if(isModel && !file.name.toLowerCase().endsWith('.glb'))return setMessage('3D model must be a .glb file.');if(!isModel && !file.type.startsWith('image/'))return setMessage('Please upload an image.');const ext=file.name.split('.').pop()?.toLowerCase()||'bin';const path=`${crypto.randomUUID()}.${ext}`;const {error}=await supabase.storage.from('catalog').upload(path,file,{upsert:false,contentType:file.type||undefined});if(error){setMessage(error.message);return;}const {data}=supabase.storage.from('catalog').getPublicUrl(path);setEditing(v=>({...v,[type]:data.publicUrl}));}
-  async function updateOrder(id,status){const {error}=await supabase.from('orders').update({status}).eq('id',id);if(error)setMessage(error.message);else loadAll()}
-  async function updateCustom(id,status){const {error}=await supabase.from('custom_orders').update({status}).eq('id',id);if(error)setMessage(error.message);else loadAll()}
+  async function updateOrder(id,status){const {error}=await supabase.from('orders').update({status}).eq('id',id);if(error)setMessage(error.message);else{await notifyStatus(id,'order');await loadAll()}}
+  async function updateCustom(id,status){const {error}=await supabase.from('custom_orders').update({status}).eq('id',id);if(error)setMessage(error.message);else{await notifyStatus(id,'custom');await loadAll()}}
   const revenue=useMemo(()=>orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+Number(o.total||0),0),[orders]);
   if(loading)return <div className="page center"><div className="loader">Loading…</div></div>;
   if(!supabase || !session || !authorized)return <div className="page auth"><div className="auth-card"><div className="auth-top"><Link to="/" className="back">← {t.admin.back}</Link><LanguageSwitcher/></div><span className="eyebrow">CacaoForm Admin</span><h1>{t.admin.title}</h1><p className="muted">{t.admin.subtitle}</p><form onSubmit={login}><input type="email" required placeholder={t.admin.email} value={email} onChange={e=>setEmail(e.target.value)}/><input type="password" required placeholder={t.admin.password} value={password} onChange={e=>setPassword(e.target.value)}/><button className="button primary full">{t.admin.login}</button></form>{message&&<div className="notice">{message}</div>}</div></div>;

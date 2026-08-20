@@ -39,7 +39,9 @@ export default function CustomForm() {
                 status: 'new'
             }).select('id').single();
             if (error) throw error;
-            await supabase.functions.invoke('notify-custom-order', {body: {order_id: data.id}}).catch(() => null);
+            // await supabase.functions.invoke('notify-custom-order', {body: {order_id: data.id}}).catch(() => null);\
+            const notification = await supabase.functions.invoke('notify-custom-order', {body: {order_id: data.id}});
+            if (notification.error) console.error('Telegram notification failed:', notification.error);
             setForm({customer_name: '', email: '', phone: '', description: ''});
             setFile(null);
             setMessage(t.customForm.success);
