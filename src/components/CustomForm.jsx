@@ -30,18 +30,39 @@ export default function CustomForm() {
                 if (up) throw up;
                 file_url = supabase.storage.from('custom-uploads').getPublicUrl(path).data.publicUrl;
             }
-            const {
-                data,
-                error
-            } = await supabase.from('custom_orders').insert({
-                ...form,
-                file_url,
-                status: 'new'
-            }).select('id').single();
+            // const {
+            //     data,
+            //     error
+            // } = await supabase.from('custom_orders').insert({
+            //     ...form,
+            //     file_url,
+            //     status: 'new'
+            // }).select('id').single();
+            // if (error) throw error;
+            // // await supabase.functions.invoke('notify-custom-order', {body: {order_id: data.id}}).catch(() => null);\
+            // const notification = await supabase.functions.invoke('notify-custom-order', {body: {order_id: data.id}});
+            // if (notification.error) console.error('Telegram notification failed:', notification.error);
+
+            const { data, error } = await supabase.functions.invoke(
+                'create-custom-order',
+                {
+                    body: {
+                        ...form,
+                        file_url
+                    }
+                }
+            );
+
             if (error) throw error;
-            // await supabase.functions.invoke('notify-custom-order', {body: {order_id: data.id}}).catch(() => null);\
-            const notification = await supabase.functions.invoke('notify-custom-order', {body: {order_id: data.id}});
-            if (notification.error) console.error('Telegram notification failed:', notification.error);
+
+            if (!data?.ok) {
+                throw new Error(
+                    data?.error || 'Не вдалося створити індивідуальне замовлення'
+                );
+            }
+
+
+
             setForm({customer_name: '', email: '', phone: '', description: ''});
             setFile(null);
             setMessage(t.customForm.success);

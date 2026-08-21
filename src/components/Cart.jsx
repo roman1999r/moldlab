@@ -13,10 +13,11 @@ export default function Cart({cart, setCart}) {
         product,
         quantity
     }) => s + Number(product.price) * quantity, 0), [items]);
-    const change = (id, delta) => setCart(c => c.map(p => p.id === id ? {
-        ...p,
-        quantity: Math.max(1, (p.quantity || 1) + delta)
-    } : p));
+    const change = (id, delta) => setCart(c => c.flatMap(p => {
+        if (p.id !== id) return [p];
+        const next = (p.quantity || 1) + delta;
+        return next <= 0 ? [] : [{...p, quantity: next}]
+    }));
 
     async function submitOrder(e) {
         e.preventDefault();
@@ -38,17 +39,47 @@ export default function Cart({cart, setCart}) {
                 total,
                 status: 'new'
             };
-            const {
-                data,
-                error
-            } = await supabase.from('orders').insert(payload).select('id').single();
+            console.log('ORDER PAYLOAD:', JSON.stringify(payload, null, 2));
+
+
+            const { data, error } = await supabase.functions.invoke('create-order', {
+                body: payload,
+            });
+
+            if (error) {
+                console.error('FUNCTION ERROR:', error);
+
+                if (error.context) {
+                    try {
+                        const body = await error.context.json();
+                        console.error('FUNCTION RESPONSE BODY:', body);
+                    } catch {
+                        console.error('Could not read function response body');
+                    }
+                }
+
+                throw error;
+            }
+
+            console.log('CREATE ORDER RESPONSE:', data);
+
+            if (!data?.ok) {
+                throw new Error(data?.error || 'Не вдалося створити замовлення');
+            }
+
+            // const {
+            //     // data,
+            //     error
+            // } = await supabase.from('orders').insert(payload)
+                // .select('id').single();
             if (error) throw error;
-            await supabase.functions.invoke('notify-new-order', {body: {order_id: data.id}}).catch(() => null);
+            // await supabase.functions.invoke('notify-new-order', {body: {order_id: data.id}}).catch(() => null);
             setCart([]);
             setCheckout(false);
             setMessage(t.cart.success);
-        } catch {
-            setMessage(t.cart.error)
+        } catch (error) {
+            console.error('ORDER ERROR:', error);
+            setMessage(error.message || t.cart.error);
         } finally {
             setLoading(false)
         }

@@ -11,7 +11,6 @@ import {LanguageProvider} from './context/LanguageContext';
 
 const adminPath = import.meta.env.VITE_ADMIN_PATH;
 
-
 export default function App() {
     const [cart, setCart] = useState(() => {
         try {
@@ -52,8 +51,6 @@ export default function App() {
         // path="/manage-x7k9/*"
         path={`/${adminPath}/*`}
         element={<Admin />}
-
-
 
     /></Routes>{cart.length > 0 && <Cart
         cart={cart}

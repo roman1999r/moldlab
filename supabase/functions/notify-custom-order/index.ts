@@ -21,8 +21,8 @@ Deno.serve(async (req) => {
     if (!order_id) return json({ error: 'order_id is required' }, 400);
 
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
-    const chatId = Deno.env.get('TELEGRAM_CHAT_ID');
+    const botToken = Deno.env.get('telegram_bot_token');
+    const chatId = Deno.env.get('telegram_chat_id');
 
     if (!serviceKey || !botToken || !chatId) {
       return json({ error: 'Telegram/Supabase secrets are not configured' }, 500);
