@@ -2,9 +2,16 @@ import {Box, ShoppingBag, ArrowUpRight} from 'lucide-react';
 import {Link} from 'react-router-dom';
 import ProductModel from './ProductModel';
 import {useLanguage} from '../context/LanguageContext';
+import {Heart} from 'lucide-react';
+import {useWishlist} from '../hooks/useWishlist';
 
 export default function ProductCard({product, onAdd}) {
     const {t} = useLanguage();
+    const {
+        isInWishlist,
+        toggleWishlist
+    } = useWishlist();
+
     return <article className="product-card">
         <div className="product-image"><ProductModel
             src={product.model}
@@ -32,6 +39,31 @@ export default function ProductCard({product, onAdd}) {
                     onClick={() => onAdd(product)}
                 ><ShoppingBag size={17} /> {t.product.add}</button>
             </div>
+            <button
+                className={`wishlist-button ${
+                    isInWishlist(product.id) ? 'active' : ''
+                }`}
+                onClick={async e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const result = await toggleWishlist(product.id);
+
+                    if (result?.requiresLogin) {
+                        window.location.href = '/auth';
+                    }
+                }}
+            >
+                <Heart
+                    size={20}
+                    fill={
+                        isInWishlist(product.id)
+                            ? 'currentColor'
+                            : 'none'
+                    }
+                />
+            </button>
+
         </div>
     </article>;
 }
