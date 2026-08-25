@@ -1,88 +1,76 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+
+const STORAGE_KEY = 'moldlab-wishlist';
 
 export function useWishlist() {
-    const { user } = useAuth();
+    const [wishlist, setWishlist] = useState(() => {
+        try {
+            const saved =
+                localStorage.getItem(STORAGE_KEY);
 
-    const [wishlist, setWishlist] = useState([]);
-    const [loading, setLoading] = useState(false);
-
-    async function loadWishlist() {
-        if (!user) {
-            setWishlist([]);
-            return;
+            return saved
+                ? JSON.parse(saved)
+                : [];
+        } catch {
+            return [];
         }
-
-        setLoading(true);
-
-        const { data, error } = await supabase
-            .from('wishlists')
-            .select('product_id')
-            .eq('user_id', user.id);
-
-        if (error) {
-            console.error('WISHLIST ERROR:', error);
-        } else {
-            setWishlist(
-                data.map(item => item.product_id)
-            );
-        }
-
-        setLoading(false);
-    }
+    });
 
     useEffect(() => {
-        loadWishlist();
-    }, [user]);
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(wishlist)
+        );
+    }, [wishlist]);
 
-    async function toggleWishlist(productId) {
-        if (!user) {
-            return {
-                requiresLogin: true
-            };
-        }
+    function isInWishlist(id) {
+        return wishlist.some(
+            item =>
+                String(item.id) === String(id)
+        );
+    }
 
-        const exists = wishlist.includes(productId);
-
-        if (exists) {
-            const { error } = await supabase
-                .from('wishlists')
-                .delete()
-                .eq('user_id', user.id)
-                .eq('product_id', productId);
-
-            if (error) throw error;
-
-            setWishlist(
-                wishlist.filter(id => id !== productId)
+    function toggleWishlist(product) {
+        setWishlist(current => {
+            const exists = current.some(
+                item =>
+                    String(item.id) ===
+                    String(product.id)
             );
-        } else {
-            const { error } = await supabase
-                .from('wishlists')
-                .insert({
-                    user_id: user.id,
-                    product_id: productId
-                });
 
-            if (error) throw error;
+            if (exists) {
+                return current.filter(
+                    item =>
+                        String(item.id) !==
+                        String(product.id)
+                );
+            }
 
-            setWishlist([
-                ...wishlist,
-                productId
-            ]);
-        }
+            return [
+                ...current,
+                product
+            ];
+        });
+    }
 
-        return {
-            requiresLogin: false
-        };
+    function removeFromWishlist(id) {
+        setWishlist(current =>
+            current.filter(
+                item =>
+                    String(item.id) !== String(id)
+            )
+        );
+    }
+
+    function clearWishlist() {
+        setWishlist([]);
     }
 
     return {
         wishlist,
-        loading,
+        isInWishlist,
         toggleWishlist,
-        isInWishlist: productId =>
-            wishlist.includes(productId)
+        removeFromWishlist,
+        clearWishlist
     };
 }

@@ -298,53 +298,47 @@
 //         </>
 //     );
 // }
-
 import {
     Heart,
-    X,
     ShoppingCart,
     Trash2
 } from 'lucide-react';
 
 import { Link } from 'react-router-dom';
 
+import { useWishlist } from '../hooks/useWishlist';
+
 export default function Wishlist({
-                                     wishlist,
-                                     setWishlist,
                                      onAdd
                                  }) {
-
-    function remove(id) {
-        setWishlist(items =>
-            items.filter(item => item.id !== id)
-        );
-    }
-
-    function clear() {
-        setWishlist([]);
-    }
+    const {
+        wishlist,
+        removeFromWishlist,
+        clearWishlist
+    } = useWishlist();
 
     return (
         <main className="page">
             <div className="container">
 
-                <div className="wishlist-page-header">
+                <div className="wishlist-page-head">
                     <div>
-                        <span className="eyebrow">
-                            Ваші товари
-                        </span>
+                        <div className="eyebrow">
+                            <Heart size={14} />
+                            Обране
+                        </div>
 
-                        <h1>Вішлист</h1>
-
-                        <p>
-                            Товари, які ви хочете зберегти.
-                        </p>
+                        <h1>
+                            Мої улюблені
+                            <br />
+                            <em>товари</em>
+                        </h1>
                     </div>
 
                     {wishlist.length > 0 && (
                         <button
                             className="button secondary"
-                            onClick={clear}
+                            onClick={clearWishlist}
                         >
                             <Trash2 size={16} />
                             Очистити
@@ -358,18 +352,20 @@ export default function Wishlist({
                         <Heart size={45} />
 
                         <h2>
-                            Вішлист поки порожній
+                            Обраних товарів ще немає
                         </h2>
 
                         <p>
-                            Додайте товари, які вам сподобалися.
+                            Додавайте товари до
+                            обраного натисканням
+                            на сердечко.
                         </p>
 
                         <Link
                             to="/"
                             className="button primary"
                         >
-                            Переглянути товари
+                            Перейти до товарів
                         </Link>
 
                     </div>
@@ -388,52 +384,65 @@ export default function Wishlist({
                                 >
                                     {product.image_url ? (
                                         <img
-                                            src={product.image_url}
-                                            alt={product.name}
+                                            src={
+                                                product.image_url
+                                            }
+                                            alt={
+                                                product.name
+                                            }
                                         />
                                     ) : (
                                         <div>
-                                            3D
+                                            Немає фото
                                         </div>
                                     )}
                                 </Link>
 
-                                <div className="wishlist-page-info">
-
-                                    <span className="category">
-                                        {product.category || 'Mold'}
-                                    </span>
+                                <div>
+                                    <div className="category">
+                                        {product.category ||
+                                            'MOLD'}
+                                    </div>
 
                                     <h3>
                                         {product.name}
                                     </h3>
 
                                     <strong>
-                                        €{Number(product.price).toFixed(2)}
+                                        €{Number(
+                                        product.price ||
+                                        0
+                                    ).toFixed(2)}
                                     </strong>
 
                                     <div className="wishlist-page-actions">
 
                                         <button
                                             className="button primary"
-                                            onClick={() => onAdd(product)}
+                                            onClick={() =>
+                                                onAdd(product)
+                                            }
                                         >
-                                            <ShoppingCart size={16} />
-                                            До кошика
+                                            <ShoppingCart
+                                                size={16}
+                                            />
+                                            Додати в кошик
                                         </button>
 
                                         <button
-                                            className="icon-button"
-                                            title="Видалити"
+                                            className="button secondary"
                                             onClick={() =>
-                                                remove(product.id)
+                                                removeFromWishlist(
+                                                    product.id
+                                                )
                                             }
                                         >
-                                            <X size={18} />
+                                            <Trash2
+                                                size={16}
+                                            />
                                         </button>
 
                                     </div>
-
                                 </div>
 
                             </article>

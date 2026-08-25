@@ -190,187 +190,208 @@
 //     );
 // }
 
-
+import { useEffect } from 'react';
 import { useState } from 'react';
-import {
-    ShoppingBag,
-    Heart,
-    User,
-    Menu,
-    X,
-    LogIn
-} from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import {
-    Link,
-    useLocation
-} from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../hooks/useWishlist';
+import LanguageSwitcher from "./LanguageSwitcher.jsx";
 
-import { useLanguage } from '../context/LanguageContext';
+export default function Header() {
+    const [menuOpen, setMenuOpen] = useState(false);
 
-export default function Header({
-                                   count = 0,
-                                   wishlistCount = 0,
-                                   user
-                               }) {
+    const location = useLocation();
+    const navigate = useNavigate();
 
-    const { language, setLanguage } =
-        useLanguage();
+    const {
+        user,
+        profile,
+        logout
+    } = useAuth();
+    console.log(profile);
+    const {
+        wishlist
+    } = useWishlist();
 
-    const [open, setOpen] =
-        useState(false);
+    const wishlistCount = Array.isArray(wishlist)
+        ? wishlist.length
+        : 0;
 
-    const location =
-        useLocation();
+    useEffect(() => {
+        const id = window.location.hash.substring(1);
 
-    const adminPath =
-        import.meta.env.VITE_ADMIN_PATH || 'admin';
+        if (id) {
+            setTimeout(() => {
+                document.getElementById(id)?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        }
+    }, []);
+
+
+    function goToSection(id) {
+        closeMenu();
+
+        if (location.pathname === '/') {
+            document.getElementById(id)?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        } else {
+            navigate(`/#${id}`);
+
+            setTimeout(() => {
+                document.getElementById(id)?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        }
+    }
+
+    function closeMenu() {
+        setMenuOpen(false);
+    }
+
+    async function handleLogout() {
+        await logout();
+        closeMenu();
+        navigate('/');
+    }
+
+    function isActive(path) {
+        return location.pathname === path;
+    }
 
     return (
         <header className="header">
-
             <div className="container nav">
 
+                {/* LOGO */}
                 <Link
                     to="/"
                     className="logo"
-                    onClick={() => setOpen(false)}
+                    onClick={closeMenu}
                 >
                     <span className="logo-mark">
                         M
                     </span>
 
                     <span>
-                        Mold<span>Lab</span>
+                        mold<span>lab</span>
                     </span>
                 </Link>
 
+                {/* DESKTOP NAVIGATION */}
                 <nav
                     className={`nav-links ${
-                        open ? 'open' : ''
+                        menuOpen ? 'open' : ''
                     }`}
                 >
-
                     <Link
                         to="/"
-                        onClick={() => setOpen(false)}
+                        onClick={closeMenu}
                     >
-                        Каталог
+                        Головна
                     </Link>
 
-                    <a
-                        href="/#custom"
-                        onClick={() => setOpen(false)}
-                    >
-                        Індивідуальне замовлення
-                    </a>
+                    <Link
 
-                    <a
-                        href="/#about"
-                        onClick={() => setOpen(false)}
+                        onClick={() => goToSection('catalog')}
+                    >
+                        Товари
+                    </Link>
+
+                    <Link
+                        onClick={() => goToSection('custom')}
+                    >
+                        Створити
+                    </Link>
+
+                    <Link
+                        onClick={() => goToSection('about')}
                     >
                         Про нас
-                    </a>
-
-                </nav>
-
-                <div className="header-actions">
-
-                    <Link
-                        to="/wishlist"
-                        className="header-icon"
-                        title="Вішлист"
-                    >
-                        <Heart
-                            size={20}
-                            strokeWidth={1.8}
-                        />
-
-                        {wishlistCount > 0 && (
-                            <span className="header-badge">
-                                {wishlistCount}
-                            </span>
-                        )}
                     </Link>
+
 
                     {user ? (
-                        <Link
-                            to="/account"
-                            className="header-account"
-                            title="Мій акаунт"
-                        >
-                            <User size={19} />
+                        <>
+                            {profile?.role === 'admin' ? (
+                                <Link
+                                    to="/admin"
+                                    onClick={closeMenu}
+                                >
+                                    Адмін панель
+                                </Link>
+                            ) : (
+                                <Link
+                                    to="/account"
+                                    onClick={closeMenu}
+                                >
+                                    Акаунт
+                                </Link>
+                            )}
 
-                            <span className="header-account-text">
-                                Акаунт
-                            </span>
-                        </Link>
+                            <button
+                                type="button"
+                                className="button secondary"
+                                onClick={handleLogout}
+                            >
+                                Вийти
+                            </button>
+                        </>
                     ) : (
                         <Link
-                            to="/auth"
-                            className="header-account"
-                            title="Увійти"
+                            to="/login"
+                            onClick={closeMenu}
                         >
-                            <LogIn size={19} />
-
-                            <span className="header-account-text">
-                                Увійти
-                            </span>
+                            Увійти
                         </Link>
                     )}
+                </nav>
+                <div className="header-actions"><LanguageSwitcher /></div>
 
+                {/* HEADER ACTIONS */}
+                <div className="header-actions">
+
+
+                    {/* CART */}
                     <Link
-                        to="/"
+                        to="/cart"
                         className="cart-link"
-                        title="Кошик"
+                        aria-label="Корзина"
                     >
-                        <ShoppingBag size={20} />
-
-                        {count > 0 && (
-                            <span>
-                                {count}
-                            </span>
-                        )}
+                        <span
+                            aria-hidden="true"
+                            style={{
+                                fontSize: '18px'
+                            }}
+                        >
+                            🛒
+                        </span>
                     </Link>
 
-                    <div className="language-switcher">
-                        <select
-                            value={language}
-                            onChange={e =>
-                                setLanguage(e.target.value)
-                            }
-                        >
-                            <option value="uk">
-                                UA
-                            </option>
 
-                            <option value="en">
-                                EN
-                            </option>
-
-                            <option value="es">
-                                ES
-                            </option>
-                        </select>
-                    </div>
-
+                    {/* MOBILE MENU */}
                     <button
+                        type="button"
                         className="menu"
+                        aria-label="Меню"
+                        aria-expanded={menuOpen}
                         onClick={() =>
-                            setOpen(!open)
+                            setMenuOpen(prev => !prev)
                         }
-                        aria-label="Menu"
                     >
-                        {open
-                            ? <X size={23} />
-                            : <Menu size={23} />}
+                        {menuOpen ? '✕' : '☰'}
                     </button>
 
                 </div>
 
             </div>
-
         </header>
     );
 }
-

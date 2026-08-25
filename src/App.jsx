@@ -149,15 +149,15 @@ import Auth from './pages/Auth';
 import Account from './pages/Account';
 import Wishlist from './pages/Wishlist';
 
-import { demoProducts } from './data/products';
 import { supabase } from './lib/supabase';
-
-import { LanguageProvider } from './context/LanguageContext';
+import { useAuth } from './context/AuthContext';
+import AdminRoute from "./components/AdminRoute.jsx";
 
 const adminPath =
     import.meta.env.VITE_ADMIN_PATH || 'admin';
 
 export default function App() {
+    const { user } = useAuth();
 
     const [cart, setCart] = useState(() => {
         try {
@@ -169,20 +169,20 @@ export default function App() {
         }
     });
 
-    const [wishlist, setWishlist] = useState(() => {
-        try {
-            return JSON.parse(
-                localStorage.getItem('moldlab-wishlist') || '[]'
-            );
-        } catch {
-            return [];
-        }
-    });
+    const [products, setProducts] = useState([]);
+    const [productsLoading, setProductsLoading] =
+        useState(true);
+    const [productsError, setProductsError] =
+        useState('');
 
-    const [products, setProducts] =
-        useState(demoProducts);
 
-    const [user, setUser] = useState(null);
+    useEffect(() => {
+        window.history.scrollRestoration = 'manual';
+
+        return () => {
+            window.history.scrollRestoration = 'auto';
+        };
+    }, []);
 
     useEffect(() => {
         localStorage.setItem(
@@ -191,76 +191,91 @@ export default function App() {
         );
     }, [cart]);
 
-    useEffect(() => {
-        localStorage.setItem(
-            'moldlab-wishlist',
-            JSON.stringify(wishlist)
-        );
-    }, [wishlist]);
+    // useEffect(() => {
+    //     async function loadProducts() {
+    //         if (!supabase) {
+    //             setProductsError(
+    //                 'Supabase не підключений.'
+    //             );
+    //             setProductsLoading(false);
+    //             return;
+    //         }
+    //
+    //         setProductsLoading(true);
+    //         setProductsError('');
+    //
+    //         console.log('Loading products from Supabase...');
+    //
+    //         const {
+    //             data,
+    //             error
+    //         } = await supabase
+    //             .from('products')
+    //             .select('*')
+    //             .order('created_at', {
+    //                 ascending: false
+    //             });
+    //
+    //         console.log('PRODUCTS:', data);
+    //         console.log('PRODUCTS ERROR:', error);
+    //
+    //         if (error) {
+    //             setProducts([]);
+    //             setProductsError(
+    //                 error.message ||
+    //                 'Помилка завантаження товарів.'
+    //             );
+    //         } else {
+    //             setProducts(data || []);
+    //         }
+    //
+    //         setProductsLoading(false);
+    //     }
+    //
+    //     loadProducts();
+    // }, []);
 
     useEffect(() => {
+        async function loadProducts() {
 
-        if (!supabase) return;
-
-        supabase
-            .from('products')
-            .select('*')
-            .order('created_at', {
-                ascending: false
-            })
-            .then(({ data, error }) => {
-
-                if (error) {
-                    console.error(
-                        'Products error:',
-                        error
-                    );
-                    return;
-                }
-
-                if (data?.length) {
-                    setProducts(data);
-                }
-            });
-
-    }, []);
-
-    useEffect(() => {
-
-        if (!supabase) return;
-
-        supabase.auth
-            .getUser()
-            .then(({ data }) => {
-                setUser(data.user || null);
-            });
-
-        const {
-            data: listener
-        } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-                setUser(session?.user || null);
+            if (!supabase) {
+                setProductsError('Supabase не підключений.');
+                setProductsLoading(false);
+                return;
             }
-        );
 
-        return () => {
-            listener?.subscription?.unsubscribe();
-        };
+            const result = await supabase
+                .from('products')
+                .select('*');
 
+
+            if (result.error) {
+                setProducts([]);
+                setProductsError(result.error.message);
+            } else {
+                setProducts(result.data || []);
+            }
+
+            setProductsLoading(false);
+
+
+        }
+
+        loadProducts();
     }, []);
 
-    function add(product) {
-
+    function addToCart(product, selectedSize) {
         setCart(current => {
-
-            const existing =
-                current.find(
-                    item => item.id === product.id
-                );
+            const existing = current.find(
+                item =>
+                    item.id === product.id &&
+                    item.selectedSize === selectedSize
+            );
 
             if (existing) {
                 return current.map(item =>
-                    item.id === product.id
+                    item.id === product.id &&
+                    item.selectedSize === selectedSize
                         ? {
                             ...item,
                             quantity:
@@ -274,50 +289,21 @@ export default function App() {
                 ...current,
                 {
                     ...product,
+                    selectedSize,
                     quantity: 1
                 }
             ];
         });
     }
 
-    function toggleWishlist(product) {
-
-        setWishlist(current => {
-
-            const exists =
-                current.some(
-                    item => item.id === product.id
-                );
-
-            if (exists) {
-                return current.filter(
-                    item => item.id !== product.id
-                );
-            }
-
-            return [
-                ...current,
-                product
-            ];
-        });
-    }
-
-    const cartCount =
-        cart.reduce(
-            (sum, item) =>
-                sum + (item.quantity || 1),
-            0
-        );
-
     return (
-        <LanguageProvider>
-
+        <>
             <Header
-                count={cartCount}
-                wishlistCount={wishlist.length}
-                wishlist={wishlist}
-                onWishlist={toggleWishlist}
-                user={user}
+                count={cart.reduce(
+                    (sum, item) =>
+                        sum + (item.quantity || 1),
+                    0
+                )}
             />
 
             <Routes>
@@ -327,9 +313,9 @@ export default function App() {
                     element={
                         <Home
                             products={products}
-                            onAdd={add}
-                            wishlist={wishlist}
-                            onWishlist={toggleWishlist}
+                            onAdd={addToCart}
+                            loading={productsLoading}
+                            error={productsError}
                         />
                     }
                 />
@@ -339,16 +325,23 @@ export default function App() {
                     element={
                         <Product
                             products={products}
-                            onAdd={add}
-                            wishlist={wishlist}
-                            onWishlist={toggleWishlist}
+                            onAdd={addToCart}
                         />
                     }
                 />
 
                 <Route
-                    path="/auth"
+                    path="/login"
                     element={<Auth />}
+                />
+
+                <Route
+                    path="/admin"
+                    element={
+                        <AdminRoute>
+                            <Admin />
+                        </AdminRoute>
+                    }
                 />
 
                 <Route
@@ -358,13 +351,7 @@ export default function App() {
 
                 <Route
                     path="/wishlist"
-                    element={
-                        <Wishlist
-                            wishlist={wishlist}
-                            setWishlist={setWishlist}
-                            onAdd={add}
-                        />
-                    }
+                    element={<Wishlist />}
                 />
 
                 <Route
@@ -392,7 +379,6 @@ export default function App() {
                     </span>
                 </div>
             </footer>
-
-        </LanguageProvider>
+        </>
     );
 }

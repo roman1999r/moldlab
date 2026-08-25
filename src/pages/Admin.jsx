@@ -16,7 +16,7 @@ import {
 import {supabase} from '../lib/supabase';
 import {useLanguage} from '../context/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import Users from './Users';
+import Users from '../components/Users';
 
 
 
@@ -376,6 +376,7 @@ export default function Admin() {
                     </div>)}{!customOrders.length &&
                     <p className="muted">{t.admin.noCustom}</p>}</div>}
                 {tab === 'users' && <Users />}
+
             </section>
         </div>
     </main>;
@@ -535,3 +536,1455 @@ function OrderRow({order, onStatus, detailed}) {
         value={s}
     >{statusLabels[s]}</option>)}</select></div>
 }
+
+//
+// import { useEffect, useState } from 'react';
+// import { Link } from 'react-router-dom';
+//
+// import { supabase } from '../lib/supabase';
+// import { useAuth } from '../context/AuthContext';
+// import {
+//     ImagePlus,
+//     Upload
+// } from 'lucide-react';
+// import {useLanguage} from "../context/LanguageContext.jsx";
+//
+//
+// const DEFAULT_SIZES = [
+//     { size: 'S', stock: 0 },
+//     { size: 'M', stock: 0 },
+//     { size: 'L', stock: 0 }
+// ];
+//
+// const emptyProduct = {
+//     id: null,
+//     category: 'Фігурки',
+//     featured: false,
+//     name: '',
+//     description: '',
+//     price: '',
+//     old_price: '',
+//     image_url: '',
+//     model_url: '',
+//     cells: 1,
+//     // weight: '',
+//     sizes: DEFAULT_SIZES.map(item => ({ ...item }))
+// };
+//
+// export default function Admin({
+//                                   products = [],
+//                                   setProducts
+//                               }) {
+//     const {
+//         user,
+//         profile,
+//         role,
+//         logout
+//     } = useAuth();
+//
+//     const [form, setForm] = useState(emptyProduct);
+//
+//     const [editingId, setEditingId] =
+//         useState(null);
+//
+//     const [loading, setLoading] =
+//         useState(false);
+//
+//     const [message, setMessage] =
+//         useState('');
+//
+//     const [orders, setOrders] =
+//         useState([]);
+//
+//     const [ordersLoading, setOrdersLoading] =
+//         useState(false);
+//     const {t} = useLanguage();
+//     /*
+//      * ORDERS
+//      */
+//
+//     useEffect(() => {
+//         loadOrders();
+//     }, []);
+//
+//     async function loadOrders() {
+//         if (!supabase) return;
+//
+//         setOrdersLoading(true);
+//
+//         const {
+//             data,
+//             error
+//         } = await supabase
+//             .from('orders')
+//             .select('*')
+//             .order('created_at', {
+//                 ascending: false
+//             })
+//             .limit(50);
+//
+//         if (error) {
+//             console.error(
+//                 'LOAD ORDERS ERROR:',
+//                 error
+//             );
+//
+//             setOrders([]);
+//         } else {
+//             setOrders(data || []);
+//         }
+//
+//         setOrdersLoading(false);
+//     }
+//
+//     /*
+//      * FORM
+//      */
+//
+//     function change(field, value) {
+//         setForm(current => ({
+//             ...current,
+//             [field]: value
+//         }));
+//     }
+//
+//     function changeSizeStock(size, value) {
+//         const stock =
+//             Math.max(
+//                 0,
+//                 Number(value) || 0
+//             );
+//
+//         setForm(current => ({
+//             ...current,
+//
+//             sizes: current.sizes.map(item =>
+//                 item.size === size
+//                     ? {
+//                         ...item,
+//                         stock
+//                     }
+//                     : item
+//             )
+//         }));
+//     }
+//
+//     /*
+//      * LOAD PRODUCT SIZES
+//      */
+//
+//     async function loadProductSizes(productId) {
+//         if (!supabase) {
+//             return DEFAULT_SIZES.map(
+//                 item => ({ ...item })
+//             );
+//         }
+//
+//         const {
+//             data,
+//             error
+//         } = await supabase
+//             .from('product_sizes')
+//             .select('size, stock')
+//             .eq('product_id', productId)
+//             .order('size');
+//
+//         if (error) {
+//             console.error(
+//                 'LOAD PRODUCT SIZES ERROR:',
+//                 error
+//             );
+//
+//             return DEFAULT_SIZES.map(
+//                 item => ({ ...item })
+//             );
+//         }
+//
+//         return DEFAULT_SIZES.map(
+//             defaultSize => {
+//                 const saved =
+//                     (data || []).find(
+//                         item =>
+//                             item.size ===
+//                             defaultSize.size
+//                     );
+//
+//                 return {
+//                     size: defaultSize.size,
+//                     stock:
+//                         saved?.stock ?? 0
+//                 };
+//             }
+//         );
+//     }
+//
+//         async function uploadAsset(file, type) {
+//         if (!file || !supabase) return;
+//         const isModel = type === 'model_url';
+//         if (isModel && !file.name.toLowerCase().endsWith('.glb')) return setMessage('3D model must be a .glb file.');
+//         if (!isModel && !file.type.startsWith('image/')) return setMessage('Please upload an image.');
+//         const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
+//         const path = `${crypto.randomUUID()}.${ext}`;
+//         const {error} = await supabase.storage.from('catalog').upload(path, file, {
+//             upsert: false,
+//             contentType: file.type || undefined
+//         });
+//         if (error) {
+//             setMessage(error.message);
+//             return;
+//         }
+//         const {data} = supabase.storage.from('catalog').getPublicUrl(path);
+//             setEditingId(v => ({...v, [type]: data.publicUrl}));
+//     }
+//
+//
+//
+//     // async function uploadAsset(file, field) {
+//     //     if (!file) return;
+//     //
+//     //     if (!supabase) {
+//     //         setMessage('Supabase не підключений.');
+//     //         return;
+//     //     }
+//     //
+//     //     try {
+//     //         setLoading(true);
+//     //         setMessage('');
+//     //
+//     //         const extension =
+//     //             file.name.split('.').pop()?.toLowerCase();
+//     //
+//     //         const fileName =
+//     //             `${crypto.randomUUID()}.${extension}`;
+//     //
+//     //         const folder =
+//     //             field === 'image_url'
+//     //                 ? 'images'
+//     //                 : 'models';
+//     //
+//     //         const filePath =
+//     //             `${folder}/${fileName}`;
+//     //
+//     //         const {
+//     //             error: uploadError
+//     //         } = await supabase.storage
+//     //             .from('products')
+//     //             .upload(
+//     //                 filePath,
+//     //                 file,
+//     //                 {
+//     //                     cacheControl: '3600',
+//     //                     upsert: false
+//     //                 }
+//     //             );
+//     //
+//     //         if (uploadError) {
+//     //             throw uploadError;
+//     //         }
+//     //
+//     //         const {
+//     //             data
+//     //         } = supabase.storage
+//     //             .from('products')
+//     //             .getPublicUrl(filePath);
+//     //
+//     //         const publicUrl =
+//     //             data?.publicUrl;
+//     //
+//     //         if (!publicUrl) {
+//     //             throw new Error(
+//     //                 'Не вдалося отримати URL файлу.'
+//     //             );
+//     //         }
+//     //
+//     //         setForm(current => ({
+//     //             ...current,
+//     //             [field]: publicUrl
+//     //         }));
+//     //
+//     //         setMessage(
+//     //             field === 'image_url'
+//     //                 ? 'Фото завантажено.'
+//     //                 : '3D модель завантажена.'
+//     //         );
+//     //
+//     //     } catch (error) {
+//     //         console.error(
+//     //             'UPLOAD ASSET ERROR:',
+//     //             error
+//     //         );
+//     //
+//     //         setMessage(
+//     //             error?.message ||
+//     //             'Не вдалося завантажити файл.'
+//     //         );
+//     //     } finally {
+//     //         setLoading(false);
+//     //     }
+//     // }
+//     /*
+//      * EDIT
+//      */
+//
+//     async function startEdit(product) {
+//         setLoading(true);
+//         setMessage('');
+//
+//         try {
+//             const sizes =
+//                 await loadProductSizes(
+//                     product.id
+//                 );
+//
+//             setEditingId(product.id);
+//
+//             setForm({
+//                 name: product.name || '',
+//                 category:
+//                     product.category || '',
+//                 description:
+//                     product.description || '',
+//                 price:
+//                     product.price ?? '',
+//                 old_price:
+//                     product.old_price ?? '',
+//                 image_url:
+//                     product.image_url || '',
+//                 model_url:
+//                     product.model_url || '',
+//                 cells:
+//                     product.cells || '',
+//                 // weight:
+//                 //     product.weight || '',
+//                 sizes
+//             });
+//
+//             window.scrollTo({
+//                 top: 0,
+//                 behavior: 'smooth'
+//             });
+//
+//         } catch (error) {
+//             console.error(
+//                 'START EDIT ERROR:',
+//                 error
+//             );
+//
+//             setMessage(
+//                 'Не вдалося завантажити товар.'
+//             );
+//         } finally {
+//             setLoading(false);
+//         }
+//     }
+//
+//     /*
+//      * RESET
+//      */
+//
+//     function resetForm() {
+//         setEditingId(null);
+//
+//         setForm({
+//             ...emptyProduct,
+//             sizes:
+//                 DEFAULT_SIZES.map(
+//                     item => ({ ...item })
+//                 )
+//         });
+//
+//         setMessage('');
+//     }
+//
+//     /*
+//      * SAVE PRODUCT SIZES
+//      */
+//
+//     async function saveProductSizes(
+//         productId
+//     ) {
+//         if (!supabase) {
+//             throw new Error(
+//                 'Supabase не підключений.'
+//             );
+//         }
+//
+//         /*
+//          * Видаляємо старі розміри.
+//          * Потім записуємо актуальні.
+//          */
+//
+//         const {
+//             error: deleteError
+//         } = await supabase
+//             .from('product_sizes')
+//             .delete()
+//             .eq(
+//                 'product_id',
+//                 productId
+//             );
+//
+//         if (deleteError) {
+//             throw deleteError;
+//         }
+//
+//         const rows =
+//             form.sizes.map(item => ({
+//                 product_id: productId,
+//                 size: item.size,
+//                 stock:
+//                     Math.max(
+//                         0,
+//                         Number(
+//                             item.stock
+//                         ) || 0
+//                     )
+//             }));
+//
+//         const {
+//             error: insertError
+//         } = await supabase
+//             .from('product_sizes')
+//             .insert(rows);
+//
+//         if (insertError) {
+//             throw insertError;
+//         }
+//     }
+//
+//     /*
+//      * SAVE PRODUCT
+//      */
+//
+//     async function saveProduct(e) {
+//         e.preventDefault();
+//
+//         if (!supabase) {
+//             setMessage(
+//                 'Supabase не підключений.'
+//             );
+//
+//             return;
+//         }
+//
+//         if (!form.name.trim()) {
+//             setMessage(
+//                 'Введіть назву товару.'
+//             );
+//
+//             return;
+//         }
+//
+//         setLoading(true);
+//         setMessage('');
+//
+//         try {
+//             const payload = {
+//                 name:
+//                     form.name.trim(),
+//
+//                 category:
+//                     form.category.trim(),
+//
+//                 description:
+//                     form.description.trim(),
+//
+//                 price:
+//                     Number(form.price) || 0,
+//
+//                 old_price:
+//                     form.old_price
+//                         ? Number(
+//                             form.old_price
+//                         )
+//                         : null,
+//
+//                 image_url:
+//                     form.image_url.trim()
+//                         ? form.image_url.trim()
+//                         : null,
+//
+//                 model_url:
+//                     form.model_url.trim()
+//                         ? form.model_url.trim()
+//                         : null,
+//
+//                 cells:
+//                     form.cells.trim()
+//                         ? form.cells.trim()
+//                         : null,
+//
+//                 // weight:
+//                 //     form.weight.trim()
+//                 //         ? form.weight.trim()
+//                 //         : null
+//             };
+//
+//             let savedProduct;
+//
+//             /*
+//              * UPDATE
+//              */
+//
+//             if (editingId) {
+//                 const {
+//                     data,
+//                     error
+//                 } = await supabase
+//                     .from('products')
+//                     .update(payload)
+//                     .eq(
+//                         'id',
+//                         editingId
+//                     )
+//                     .select()
+//                     .single();
+//
+//                 if (error) {
+//                     throw error;
+//                 }
+//
+//                 savedProduct = data;
+//
+//                 await saveProductSizes(
+//                     editingId
+//                 );
+//
+//                 if (typeof setProducts === 'function') {
+//                     setProducts(current =>
+//                         current.map(
+//                             product =>
+//                                 product.id ===
+//                                 editingId
+//                                     ? data
+//                                     : product
+//                         )
+//                     );
+//                 }
+//
+//                 setMessage(
+//                     'Товар успішно оновлено.'
+//                 );
+//             }
+//
+//             /*
+//              * CREATE
+//              */
+//
+//             else {
+//                 const {
+//                     data,
+//                     error
+//                 } = await supabase
+//                     .from('products')
+//                     .insert(payload)
+//                     .select()
+//                     .single();
+//
+//                 if (error) {
+//                     throw error;
+//                 }
+//
+//                 savedProduct = data;
+//
+//                 await saveProductSizes(
+//                     data.id
+//                 );
+//
+//                 if (typeof setProducts === 'function') {
+//                     setProducts(current => [
+//                         data,
+//                         ...current
+//                     ]);
+//                 }
+//
+//                 setMessage(
+//                     'Товар успішно створено.'
+//                 );
+//             }
+//
+//             console.log(
+//                 'SAVED PRODUCT:',
+//                 savedProduct
+//             );
+//
+//             /*
+//              * Не скидаємо повідомлення
+//              * одразу після resetForm.
+//              */
+//
+//             setEditingId(null);
+//
+//             setForm({
+//                 ...emptyProduct,
+//                 sizes:
+//                     DEFAULT_SIZES.map(
+//                         item => ({
+//                             ...item
+//                         })
+//                     )
+//             });
+//
+//         } catch (error) {
+//             console.error(
+//                 'SAVE PRODUCT ERROR:',
+//                 error
+//             );
+//
+//             setMessage(
+//                 error?.message ||
+//                 'Не вдалося зберегти товар.'
+//             );
+//         } finally {
+//             setLoading(false);
+//         }
+//     }
+//
+//     /*
+//      * DELETE PRODUCT
+//      */
+//
+//     async function deleteProduct(id) {
+//         if (!supabase) return;
+//
+//         const ok =
+//             window.confirm(
+//                 'Видалити цей товар?'
+//             );
+//
+//         if (!ok) return;
+//
+//         setLoading(true);
+//
+//         try {
+//             /*
+//              * product_sizes видаляться
+//              * автоматично завдяки
+//              * ON DELETE CASCADE.
+//              */
+//
+//             const {
+//                 error
+//             } = await supabase
+//                 .from('products')
+//                 .delete()
+//                 .eq('id', id);
+//
+//             if (error) {
+//                 throw error;
+//             }
+//
+//             if (typeof setProducts === 'function') {
+//                 setProducts(current =>
+//                     current.filter(
+//                         product =>
+//                             product.id !== id
+//                     )
+//                 );
+//             }
+//
+//             if (editingId === id) {
+//                 resetForm();
+//             }
+//
+//             setMessage(
+//                 'Товар видалено.'
+//             );
+//
+//         } catch (error) {
+//             console.error(
+//                 'DELETE PRODUCT ERROR:',
+//                 error
+//             );
+//
+//             setMessage(
+//                 error?.message ||
+//                 'Не вдалося видалити товар.'
+//             );
+//         } finally {
+//             setLoading(false);
+//         }
+//     }
+//
+//     /*
+//      * ORDER STATUS
+//      */
+//
+//     async function updateOrderStatus(
+//         id,
+//         status
+//     ) {
+//         if (!supabase) return;
+//
+//         const {
+//             error
+//         } = await supabase
+//             .from('orders')
+//             .update({ status })
+//             .eq('id', id);
+//
+//         if (error) {
+//             console.error(
+//                 'UPDATE ORDER ERROR:',
+//                 error
+//             );
+//
+//             setMessage(
+//                 error.message
+//             );
+//
+//             return;
+//         }
+//
+//         setOrders(current =>
+//             current.map(order =>
+//                 order.id === id
+//                     ? {
+//                         ...order,
+//                         status
+//                     }
+//                     : order
+//             )
+//         );
+//     }
+//
+//     /*
+//      * AUTH INFO
+//      */
+//
+//     const adminEmail =
+//         profile?.email ||
+//         user?.email ||
+//         '';
+//
+//     return (
+//         <main className="admin-page">
+//
+//             <div className="container admin-shell">
+//
+//                 {/* SIDEBAR */}
+//
+//                 <aside className="admin-sidebar">
+//
+//                     <strong>
+//                         MoldLab Admin
+//                     </strong>
+//
+//                     <small className="muted">
+//                         {adminEmail}
+//                     </small>
+//
+//                     {role && (
+//                         <small className="muted">
+//                             Role: {role}
+//                         </small>
+//                     )}
+//
+//                     <nav className="admin-menu">
+//
+//                         <a href="#products">
+//                             Products
+//                         </a>
+//
+//                         <a href="#orders">
+//                             Orders
+//                         </a>
+//
+//                         <Link to="/admin/users">
+//                             Users
+//                         </Link>
+//
+//                     </nav>
+//
+//                     <button
+//                         type="button"
+//                         className="admin-logout"
+//                         onClick={logout}
+//                     >
+//                         Вийти
+//                     </button>
+//
+//                 </aside>
+//
+//                 {/* CONTENT */}
+//
+//                 <section className="admin-content">
+//
+//                     {/* HEADER */}
+//
+//                     <div className="admin-top">
+//
+//                         <div>
+//
+//                             <span className="eyebrow">
+//                                 Administration
+//                             </span>
+//
+//                             <h1>
+//                                 Панель керування
+//                             </h1>
+//
+//                         </div>
+//
+//                     </div>
+//
+//                     {/* MESSAGE */}
+//
+//                     {message && (
+//                         <div className="notice">
+//                             {message}
+//                         </div>
+//                     )}
+//
+//                     {/* PRODUCTS FORM */}
+//
+//                     <section
+//                         id="products"
+//                         className="admin-panel"
+//                     >
+//
+//                         <div className="panel-head">
+//
+//                             <h2>
+//                                 {editingId
+//                                     ? 'Редагувати товар'
+//                                     : 'Створити товар'}
+//                             </h2>
+//
+//                             {editingId && (
+//                                 <button
+//                                     type="button"
+//                                     className="button secondary"
+//                                     onClick={
+//                                         resetForm
+//                                     }
+//                                 >
+//                                     Скасувати
+//                                 </button>
+//                             )}
+//
+//                         </div>
+//
+//                         <form
+//                             className="product-form"
+//                             onSubmit={
+//                                 saveProduct
+//                             }
+//                         >
+//
+//                             {/* BASIC */}
+//
+//                             <div className="form-grid">
+//
+//                                 <label>
+//                                     Назва
+//
+//                                     <input
+//                                         required
+//                                         value={
+//                                             form.name
+//                                         }
+//                                         onChange={e =>
+//                                             change(
+//                                                 'name',
+//                                                 e.target
+//                                                     .value
+//                                             )
+//                                         }
+//                                     />
+//                                 </label>
+//
+//                                 <label>
+//                                     Категорія
+//
+//                                     <input
+//                                         value={
+//                                             form.category
+//                                         }
+//                                         onChange={e =>
+//                                             change(
+//                                                 'category',
+//                                                 e.target
+//                                                     .value
+//                                             )
+//                                         }
+//                                     />
+//                                 </label>
+//
+//                                 <label>
+//                                     Ціна
+//
+//                                     <input
+//                                         required
+//                                         type="number"
+//                                         min="0"
+//                                         step="0.01"
+//                                         value={
+//                                             form.price
+//                                         }
+//                                         onChange={e =>
+//                                             change(
+//                                                 'price',
+//                                                 e.target
+//                                                     .value
+//                                             )
+//                                         }
+//                                     />
+//                                 </label>
+//
+//                                 <label>
+//                                     Стара ціна
+//
+//                                     <input
+//                                         type="number"
+//                                         min="0"
+//                                         step="0.01"
+//                                         value={
+//                                             form.old_price
+//                                         }
+//                                         onChange={e =>
+//                                             change(
+//                                                 'old_price',
+//                                                 e.target
+//                                                     .value
+//                                             )
+//                                         }
+//                                     />
+//                                 </label>
+//
+//                                 {/*<label>*/}
+//                                 {/*    Вага*/}
+//
+//                                 {/*    <input*/}
+//                                 {/*        value={*/}
+//                                 {/*            form.weight*/}
+//                                 {/*        }*/}
+//                                 {/*        onChange={e =>*/}
+//                                 {/*            change(*/}
+//                                 {/*                'weight',*/}
+//                                 {/*                e.target*/}
+//                                 {/*                    .value*/}
+//                                 {/*            )*/}
+//                                 {/*        }*/}
+//                                 {/*    />*/}
+//                                 {/*</label>*/}
+//
+//                                 <label>
+//                                     cells
+//
+//                                     <input
+//                                         placeholder="New"
+//                                         value={
+//                                             form.cells
+//                                         }
+//                                         onChange={e =>
+//                                             change(
+//                                                 'cells',
+//                                                 e.target
+//                                                     .value
+//                                             )
+//                                         }
+//                                     />
+//                                 </label>
+//
+//                             </div>
+//
+//                             {/* SIZES */}
+//
+//                             <div className="sizes-stock">
+//
+//                                 <h3>
+//                                     Наявність по розмірах
+//                                 </h3>
+//
+//                                 <p className="muted">
+//                                     Вкажіть кількість
+//                                     товару для кожного
+//                                     розміру.
+//                                 </p>
+//
+//                                 <div className="sizes-stock-grid">
+//
+//                                     {form.sizes.map(
+//                                         item => (
+//                                             <label
+//                                                 key={
+//                                                     item.size
+//                                                 }
+//                                             >
+//
+//                                                 <span>
+//                                                     Розмір{' '}
+//                                                     {
+//                                                         item.size
+//                                                     }
+//                                                 </span>
+//
+//                                                 <input
+//                                                     type="number"
+//                                                     min="0"
+//                                                     step="1"
+//                                                     value={
+//                                                         item.stock
+//                                                     }
+//                                                     onChange={e =>
+//                                                         changeSizeStock(
+//                                                             item.size,
+//                                                             e.target
+//                                                                 .value
+//                                                         )
+//                                                     }
+//                                                 />
+//
+//                                                 <small>
+//                                                     шт.
+//                                                 </small>
+//
+//                                             </label>
+//                                         )
+//                                     )}
+//
+//                                 </div>
+//
+//                             </div>
+//
+//                             {/* DESCRIPTION */}
+//
+//                             <label>
+//                                 Опис
+//
+//                                 <textarea
+//                                     value={
+//                                         form.description
+//                                     }
+//                                     onChange={e =>
+//                                         change(
+//                                             'description',
+//                                             e.target
+//                                                 .value
+//                                         )
+//                                     }
+//                                 />
+//                             </label>
+//
+//                             {/* URLS */}
+//
+//                             <div className="upload-grid">
+//
+//                                 <div className="upload-box">
+//
+//                                     <ImagePlus />
+//
+//                                     <b>
+//                                         {t.admin.photo}
+//                                     </b>
+//
+//                                     <small>
+//                                         {t.admin.uploadPhoto}
+//                                     </small>
+//
+//                                     <input
+//                                         type="file"
+//                                         accept="image/*"
+//                                         onChange={e =>
+//                                             uploadAsset(
+//                                                 e.target.files?.[0],
+//                                                 'image_url'
+//                                             )
+//                                         }
+//                                     />
+//
+//                                     {form.image_url && (
+//                                         <img
+//                                             src={form.image_url}
+//                                             alt="preview"
+//                                         />
+//                                     )}
+//
+//                                 </div>
+//
+//
+//                                 <div className="upload-box">
+//
+//                                     <Upload />
+//
+//                                     <b>
+//                                         {t.admin.model}
+//                                     </b>
+//
+//                                     <small>
+//                                         {t.admin.uploadModel}
+//                                     </small>
+//
+//                                     <input
+//                                         type="file"
+//                                         accept=".glb,model/gltf-binary"
+//                                         onChange={e =>
+//                                             uploadAsset(
+//                                                 e.target.files?.[0],
+//                                                 'model_url'
+//                                             )
+//                                         }
+//                                     />
+//
+//                                     {form.model_url && (
+//                                         <small className="url-ok">
+//                                             ✓ GLB connected
+//                                         </small>
+//                                     )}
+//
+//                                 </div>
+//
+//                             </div>
+//
+//                                 {/* BUTTON */}
+//
+//                             <button
+//                                 type="submit"
+//                                 className="button primary"
+//                                 disabled={loading}
+//                             >
+//                                 {loading
+//                                     ? 'Збереження...'
+//                                     : editingId
+//                                         ? 'Зберегти зміни'
+//                                         : 'Створити товар'}
+//                             </button>
+//
+//                         </form>
+//
+//                     </section>
+//
+//                     {/* PRODUCT LIST */}
+//
+//                     <section className="admin-panel">
+//
+//                         <div className="panel-head">
+//
+//                             <h2>
+//                                 Товари
+//                             </h2>
+//
+//                             <span className="muted">
+//                                 {products.length}
+//                             </span>
+//
+//                         </div>
+//
+//                         {products.length === 0 ? (
+//                             <p className="muted">
+//                                 Товарів поки немає.
+//                             </p>
+//                         ) : (
+//                             products.map(
+//                                 product => (
+//                                     <ProductAdminRow
+//                                         key={
+//                                             product.id
+//                                         }
+//                                         product={
+//                                             product
+//                                         }
+//                                         onEdit={
+//                                             startEdit
+//                                         }
+//                                         onDelete={
+//                                             deleteProduct
+//                                         }
+//                                     />
+//                                 )
+//                             )
+//                         )}
+//
+//                     </section>
+//
+//                     {/* ORDERS */}
+//
+//                     <section
+//                         id="orders"
+//                         className="admin-panel"
+//                     >
+//
+//                         <div className="panel-head">
+//
+//                             <h2>
+//                                 Замовлення
+//                             </h2>
+//
+//                             <button
+//                                 type="button"
+//                                 className="button secondary"
+//                                 onClick={
+//                                     loadOrders
+//                                 }
+//                                 disabled={
+//                                     ordersLoading
+//                                 }
+//                             >
+//                                 {ordersLoading
+//                                     ? 'Завантаження...'
+//                                     : 'Оновити'}
+//                             </button>
+//
+//                         </div>
+//
+//                         {orders.length === 0 ? (
+//                             <p className="muted">
+//                                 Замовлень поки немає.
+//                             </p>
+//                         ) : (
+//                             orders.map(
+//                                 order => (
+//                                     <div
+//                                         className="order-row"
+//                                         key={
+//                                             order.id
+//                                         }
+//                                     >
+//
+//                                         <div>
+//                                             <b>
+//                                                 #
+//                                                 {
+//                                                     order.id
+//                                                 }
+//                                             </b>
+//
+//                                             <small>
+//                                                 {
+//                                                     order.email ||
+//                                                     order.customer_email ||
+//                                                     ''
+//                                                 }
+//                                             </small>
+//                                         </div>
+//
+//                                         <strong>
+//                                             {order.total !=
+//                                             null
+//                                                 ? `€${order.total}`
+//                                                 : ''}
+//                                         </strong>
+//
+//                                         <select
+//                                             value={
+//                                                 order.status ||
+//                                                 'new'
+//                                             }
+//                                             onChange={e =>
+//                                                 updateOrderStatus(
+//                                                     order.id,
+//                                                     e.target
+//                                                         .value
+//                                                 )
+//                                             }
+//                                         >
+//
+//                                             <option value="new">
+//                                                 Нове
+//                                             </option>
+//
+//                                             <option value="processing">
+//                                                 В обробці
+//                                             </option>
+//
+//                                             <option value="completed">
+//                                                 Виконано
+//                                             </option>
+//
+//                                             <option value="cancelled">
+//                                                 Скасовано
+//                                             </option>
+//
+//                                         </select>
+//
+//                                     </div>
+//                                 )
+//                             )
+//                         )}
+//
+//                     </section>
+//
+//                 </section>
+//
+//             </div>
+//
+//         </main>
+//     );
+// }
+//
+//
+// /*
+//  * PRODUCT ADMIN ROW
+//  */
+//
+// function ProductAdminRow({
+//                              product,
+//                              onEdit,
+//                              onDelete
+//                          }) {
+//     const [
+//         sizes,
+//         setSizes
+//     ] = useState([]);
+//
+//     const [
+//         sizesLoading,
+//         setSizesLoading
+//     ] = useState(true);
+//
+//     useEffect(() => {
+//         let mounted = true;
+//
+//         async function loadSizes() {
+//             if (!supabase) {
+//                 return;
+//             }
+//
+//             const {
+//                 data,
+//                 error
+//             } = await supabase
+//                 .from('product_sizes')
+//                 .select(
+//                     'size, stock'
+//                 )
+//                 .eq(
+//                     'product_id',
+//                     product.id
+//                 )
+//                 .order('size');
+//
+//             if (error) {
+//                 console.error(
+//                     'LOAD ROW SIZES ERROR:',
+//                     error
+//                 );
+//
+//                 if (mounted) {
+//                     setSizes([]);
+//                     setSizesLoading(false);
+//                 }
+//
+//                 return;
+//             }
+//
+//             if (mounted) {
+//                 setSizes(data || []);
+//                 setSizesLoading(false);
+//             }
+//         }
+//
+//         loadSizes();
+//
+//         return () => {
+//             mounted = false;
+//         };
+//     }, [product.id]);
+//
+//     return (
+//         <div className="product-admin-row">
+//
+//             <div className="admin-thumb">
+//
+//                 {product.image_url ? (
+//                     <img
+//                         src={
+//                             product.image_url
+//                         }
+//                         alt={
+//                             product.name
+//                         }
+//                     />
+//                 ) : (
+//                     '3D'
+//                 )}
+//
+//             </div>
+//
+//             <div>
+//
+//                 <b>
+//                     {product.name}
+//                 </b>
+//
+//                 <small>
+//                     {product.category}
+//                 </small>
+//
+//                 <div
+//                     style={{
+//                         display: 'flex',
+//                         gap: '8px',
+//                         marginTop: '8px',
+//                         flexWrap: 'wrap'
+//                     }}
+//                 >
+//
+//                     {sizesLoading ? (
+//                         <small>
+//                             Завантаження...
+//                         </small>
+//                     ) : (
+//                         ['S', 'M', 'L'].map(
+//                             size => {
+//                                 const item =
+//                                     sizes.find(
+//                                         s =>
+//                                             s.size ===
+//                                             size
+//                                     );
+//
+//                                 const stock =
+//                                     item?.stock ??
+//                                     0;
+//
+//                                 return (
+//                                     <small
+//                                         key={size}
+//                                     >
+//                                         {size}:{' '}
+//                                         {stock}
+//                                     </small>
+//                                 );
+//                             }
+//                         )
+//                     )}
+//
+//                 </div>
+//
+//             </div>
+//
+//             <strong>
+//                 €{product.price}
+//             </strong>
+//
+//             <div>
+//
+//                 <button
+//                     type="button"
+//                     className="button secondary"
+//                     onClick={() =>
+//                         onEdit(product)
+//                     }
+//                 >
+//                     Редагувати
+//                 </button>
+//
+//                 <button
+//                     type="button"
+//                     className="button danger"
+//                     onClick={() =>
+//                         onDelete(
+//                             product.id
+//                         )
+//                     }
+//                 >
+//                     Видалити
+//                 </button>
+//
+//             </div>
+//
+//         </div>
+//     );
+// }
