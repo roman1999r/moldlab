@@ -7,7 +7,9 @@ export const translations = {
             process: 'Як це працює',
             custom: 'Індивідуальна форма',
             about: 'Про нас',
-            cart: 'Кошик'
+            cart: 'Кошик',
+            main: "Головна",
+            admin_panel: "Адмін панель"
         },
         hero: {
             eyebrow: 'Для шоколатьє',
@@ -133,7 +135,9 @@ export const translations = {
             process: 'Jak to działa',
             custom: 'Forma na zamówienie',
             about: 'O nas',
-            cart: 'Koszyk'
+            cart: 'Koszyk',
+            main: "Strona główna",
+            admin_panel: "Panel admina"
         },
         hero: {
             eyebrow: 'Dla czekoladników',
@@ -259,7 +263,9 @@ export const translations = {
             process: 'How it works',
             custom: 'Custom mold',
             about: 'About us',
-            cart: 'Cart'
+            cart: 'Cart',
+            main: "Homepage ",
+            admin_panel: "Admin pane"
         },
         hero: {
             eyebrow: 'For chocolatiers',

@@ -132,6 +132,311 @@
 //     </AuthProvider>
 // }
 
+// ДОБРЕ
+// import { useEffect, useState } from 'react';
+// import {
+//     Routes,
+//     Route
+// } from 'react-router-dom';
+//
+// import Header from './components/Header';
+// import Cart from './components/Cart';
+//
+// import Home from './pages/Home';
+// import Product from './pages/Product';
+// import Admin from './pages/Admin';
+// import Auth from './pages/Auth';
+// import Account from './pages/Account';
+// import Wishlist from './pages/Wishlist';
+//
+// import { supabase } from './lib/supabase';
+// import { useAuth } from './context/AuthContext';
+// import AdminRoute from "./components/AdminRoute.jsx";
+//
+// const adminPath =
+//     import.meta.env.VITE_ADMIN_PATH || 'admin';
+//
+// export default function App() {
+//     const { user } = useAuth();
+//
+//     const [cart, setCart] = useState(() => {
+//         try {
+//             return JSON.parse(
+//                 localStorage.getItem('cacaoform-cart') || '[]'
+//             );
+//         } catch {
+//             return [];
+//         }
+//     });
+//
+//     const [products, setProducts] = useState([]);
+//     const [productsLoading, setProductsLoading] =
+//         useState(true);
+//     const [productsError, setProductsError] =
+//         useState('');
+//
+//
+//     useEffect(() => {
+//         window.history.scrollRestoration = 'manual';
+//
+//         return () => {
+//             window.history.scrollRestoration = 'auto';
+//         };
+//     }, []);
+//
+//     useEffect(() => {
+//         localStorage.setItem(
+//             'cacaoform-cart',
+//             JSON.stringify(cart)
+//         );
+//     }, [cart]);
+//
+//     // useEffect(() => {
+//     //     async function loadProducts() {
+//     //         if (!supabase) {
+//     //             setProductsError(
+//     //                 'Supabase не підключений.'
+//     //             );
+//     //             setProductsLoading(false);
+//     //             return;
+//     //         }
+//     //
+//     //         setProductsLoading(true);
+//     //         setProductsError('');
+//     //
+//     //         console.log('Loading products from Supabase...');
+//     //
+//     //         const {
+//     //             data,
+//     //             error
+//     //         } = await supabase
+//     //             .from('products')
+//     //             .select('*')
+//     //             .order('created_at', {
+//     //                 ascending: false
+//     //             });
+//     //
+//     //         console.log('PRODUCTS:', data);
+//     //         console.log('PRODUCTS ERROR:', error);
+//     //
+//     //         if (error) {
+//     //             setProducts([]);
+//     //             setProductsError(
+//     //                 error.message ||
+//     //                 'Помилка завантаження товарів.'
+//     //             );
+//     //         } else {
+//     //             setProducts(data || []);
+//     //         }
+//     //
+//     //         setProductsLoading(false);
+//     //     }
+//     //
+//     //     loadProducts();
+//     // }, []);
+//
+//     useEffect(() => {
+//         async function loadProducts() {
+//
+//             if (!supabase) {
+//                 setProductsError('Supabase не підключений.');
+//                 setProductsLoading(false);
+//                 return;
+//             }
+//
+//             const result = await supabase
+//                 .from('products')
+//                 .select(`
+//     *,
+//     product_sizes (
+//         id,
+//         size,
+//         stock
+//     )
+// `)
+//
+//
+//             if (result.error) {
+//                 setProducts([]);
+//                 setProductsError(result.error.message);
+//             } else {
+//                 setProducts(result.data || []);
+//             }
+//
+//             setProductsLoading(false);
+//
+//
+//         }
+//
+//         loadProducts();
+//     }, []);
+//
+//     function addToCart(product, selectedSize) {
+//         setCart(current => {
+//             const existing = current.find(
+//                 item =>
+//                     item.id === product.id &&
+//                     item.selectedSize === selectedSize
+//             );
+//
+//             if (existing) {
+//                 return current.map(item =>
+//                     item.id === product.id &&
+//                     item.selectedSize === selectedSize
+//                         ? {
+//                             ...item,
+//                             quantity:
+//                                 (item.quantity || 1) + 1
+//                         }
+//                         : item
+//                 );
+//             }
+//
+//             return [
+//                 ...current,
+//                 {
+//                     ...product,
+//                     selectedSize,
+//                     quantity: 1
+//                 }
+//             ];
+//         });
+//     }
+//
+//     function updateCartQuantity(
+//         productId,
+//         selectedSize,
+//         quantity
+//     ) {
+//         if (quantity < 1) {
+//             removeFromCart(
+//                 productId,
+//                 selectedSize
+//             );
+//
+//             return;
+//         }
+//
+//         setCart(current =>
+//             current.map(item =>
+//                 item.id === productId &&
+//                 item.selectedSize === selectedSize
+//                     ? {
+//                         ...item,
+//                         quantity
+//                     }
+//                     : item
+//             )
+//         );
+//     }
+//
+//     function removeFromCart(
+//         productId,
+//         selectedSize
+//     ) {
+//         setCart(current =>
+//             current.filter(
+//                 item =>
+//                     !(
+//                         item.id === productId &&
+//                         item.selectedSize === selectedSize
+//                     )
+//             )
+//         );
+//     }
+//
+//     function clearCart() {
+//         setCart([]);
+//     }
+//
+//     return (
+//         <>
+//             <Header
+//                 count={cart.reduce(
+//                     (sum, item) =>
+//                         sum + (item.quantity || 1),
+//                     0
+//                 )}
+//             />
+//
+//             <Routes>
+//
+//                 <Route
+//                     path="/"
+//                     element={
+//                         <Home
+//                             products={products}
+//                             onAdd={addToCart}
+//                             loading={productsLoading}
+//                             error={productsError}
+//                         />
+//                     }
+//                 />
+//
+//                 <Route
+//                     path="/product/:id"
+//                     element={
+//                         <Product
+//                             products={products}
+//                             onAdd={addToCart}
+//                         />
+//                     }
+//                 />
+//
+//                 <Route
+//                     path="/login"
+//                     element={<Auth />}
+//                 />
+//
+//                 <Route
+//                     path="/admin"
+//                     element={
+//                         <AdminRoute>
+//                             <Admin />
+//                         </AdminRoute>
+//                     }
+//                 />
+//
+//                 <Route
+//                     path="/account"
+//                     element={<Account />}
+//                 />
+//
+//                 <Route
+//                     path="/wishlist"
+//                     element={<Wishlist />}
+//                 />
+//
+//                 <Route
+//                     path={`/${adminPath}/*`}
+//                     element={<Admin />}
+//                 />
+//
+//             </Routes>
+//
+//             {cart.length > 0 && (
+//                 <Cart
+//                     cart={cart}
+//                     setCart={setCart}
+//                 />
+//             )}
+//
+//             <footer>
+//                 <div className="container footer">
+//                     <span>
+//                         © 2026 MoldLab
+//                     </span>
+//
+//                     <span>
+//                         Silicone molds for chocolate
+//                     </span>
+//                 </div>
+//             </footer>
+//         </>
+//     );
+// }
+
+
 
 import { useEffect, useState } from 'react';
 import {
@@ -151,7 +456,7 @@ import Wishlist from './pages/Wishlist';
 
 import { supabase } from './lib/supabase';
 import { useAuth } from './context/AuthContext';
-import AdminRoute from "./components/AdminRoute.jsx";
+import AdminRoute from './components/AdminRoute.jsx';
 
 const adminPath =
     import.meta.env.VITE_ADMIN_PATH || 'admin';
@@ -175,6 +480,11 @@ export default function App() {
     const [productsError, setProductsError] =
         useState('');
 
+    /*
+     * -----------------------------------------
+     * SCROLL
+     * -----------------------------------------
+     */
 
     useEffect(() => {
         window.history.scrollRestoration = 'manual';
@@ -184,6 +494,12 @@ export default function App() {
         };
     }, []);
 
+    /*
+     * -----------------------------------------
+     * SAVE CART
+     * -----------------------------------------
+     */
+
     useEffect(() => {
         localStorage.setItem(
             'cacaoform-cart',
@@ -191,119 +507,356 @@ export default function App() {
         );
     }, [cart]);
 
-    // useEffect(() => {
-    //     async function loadProducts() {
-    //         if (!supabase) {
-    //             setProductsError(
-    //                 'Supabase не підключений.'
-    //             );
-    //             setProductsLoading(false);
-    //             return;
-    //         }
-    //
-    //         setProductsLoading(true);
-    //         setProductsError('');
-    //
-    //         console.log('Loading products from Supabase...');
-    //
-    //         const {
-    //             data,
-    //             error
-    //         } = await supabase
-    //             .from('products')
-    //             .select('*')
-    //             .order('created_at', {
-    //                 ascending: false
-    //             });
-    //
-    //         console.log('PRODUCTS:', data);
-    //         console.log('PRODUCTS ERROR:', error);
-    //
-    //         if (error) {
-    //             setProducts([]);
-    //             setProductsError(
-    //                 error.message ||
-    //                 'Помилка завантаження товарів.'
-    //             );
-    //         } else {
-    //             setProducts(data || []);
-    //         }
-    //
-    //         setProductsLoading(false);
-    //     }
-    //
-    //     loadProducts();
-    // }, []);
+    /*
+     * -----------------------------------------
+     * LOAD PRODUCTS
+     * -----------------------------------------
+     */
 
     useEffect(() => {
         async function loadProducts() {
-
             if (!supabase) {
-                setProductsError('Supabase не підключений.');
+                setProductsError(
+                    'Supabase не підключений.'
+                );
+
                 setProductsLoading(false);
+
                 return;
             }
 
-            const result = await supabase
+            setProductsLoading(true);
+            setProductsError('');
+
+            const {
+                data,
+                error
+            } = await supabase
                 .from('products')
-                .select('*');
+                .select(`
+                    *,
+                    product_sizes (
+                        id,
+                        size,
+                        stock
+                    )
+                `)
+                .order('created_at', {
+                    ascending: false
+                });
 
+            if (error) {
+                console.error(
+                    'LOAD PRODUCTS ERROR:',
+                    error
+                );
 
-            if (result.error) {
                 setProducts([]);
-                setProductsError(result.error.message);
+                setProductsError(
+                    error.message ||
+                    'Помилка завантаження товарів.'
+                );
             } else {
-                setProducts(result.data || []);
+                setProducts(data || []);
             }
 
             setProductsLoading(false);
-
-
         }
 
         loadProducts();
     }, []);
 
-    function addToCart(product, selectedSize) {
+    /*
+     * -----------------------------------------
+     * ADD TO CART
+     * -----------------------------------------
+     */
+
+    function addToCart(product, selectedSize = null) {
+        const normalizedSize =
+            selectedSize !== null &&
+            selectedSize !== undefined &&
+            selectedSize !== ''
+                ? String(selectedSize)
+                : null;
+
+        console.log('========== APP ADD TO CART ==========');
+        console.log('PRODUCT:', product);
+        console.log('PRODUCT ID:', product.id);
+        console.log('SELECTED SIZE:', normalizedSize);
+
         setCart(current => {
-            const existing = current.find(
-                item =>
-                    item.id === product.id &&
-                    item.selectedSize === selectedSize
-            );
+
+            const existing = current.find(item => {
+
+                const itemSize =
+                    item.selectedSize !== null &&
+                    item.selectedSize !== undefined &&
+                    item.selectedSize !== ''
+                        ? String(item.selectedSize)
+                        : null;
+
+                return (
+                    String(item.id) === String(product.id) &&
+                    itemSize === normalizedSize
+                );
+            });
+
+            /*
+             * Такий самий товар + такий самий розмір
+             * => збільшуємо quantity
+             */
 
             if (existing) {
-                return current.map(item =>
-                    item.id === product.id &&
-                    item.selectedSize === selectedSize
-                        ? {
+                console.log(
+                    'EXISTING CART ITEM -> INCREASE QUANTITY'
+                );
+
+                return current.map(item => {
+
+                    const itemSize =
+                        item.selectedSize !== null &&
+                        item.selectedSize !== undefined &&
+                        item.selectedSize !== ''
+                            ? String(item.selectedSize)
+                            : null;
+
+                    if (
+                        String(item.id) === String(product.id) &&
+                        itemSize === normalizedSize
+                    ) {
+                        return {
                             ...item,
                             quantity:
-                                (item.quantity || 1) + 1
-                        }
-                        : item
-                );
+                                Number(item.quantity || 0) + 1
+                        };
+                    }
+
+                    return item;
+                });
             }
+
+            /*
+             * Інший розмір
+             * => НОВИЙ рядок у корзині
+             */
+
+            console.log(
+                'NEW CART ITEM'
+            );
 
             return [
                 ...current,
                 {
                     ...product,
-                    selectedSize,
+
+                    /*
+                     * Ось тут зберігаємо розмір
+                     */
+                    selectedSize: normalizedSize,
+
                     quantity: 1
                 }
             ];
         });
     }
 
+    /*
+     * -----------------------------------------
+     * UPDATE CART QUANTITY
+     * -----------------------------------------
+     */
+
+    function updateCartQuantity(
+        productId,
+        selectedSize,
+        quantity
+    ) {
+        const nextQuantity = Number(quantity);
+
+        if (!Number.isFinite(nextQuantity)) {
+            return;
+        }
+
+        const normalizedSize =
+            selectedSize !== null &&
+            selectedSize !== undefined &&
+            selectedSize !== ''
+                ? String(selectedSize)
+                : null;
+
+        if (nextQuantity < 1) {
+            removeFromCart(
+                productId,
+                normalizedSize
+            );
+
+            return;
+        }
+
+        setCart(current =>
+            current.map(item => {
+
+                const itemSize =
+                    item.selectedSize !== null &&
+                    item.selectedSize !== undefined &&
+                    item.selectedSize !== ''
+                        ? String(item.selectedSize)
+                        : null;
+
+                if (
+                    String(item.id) !== String(productId) ||
+                    itemSize !== normalizedSize
+                ) {
+                    return item;
+                }
+
+                const sizes =
+                    Array.isArray(item.product_sizes)
+                        ? item.product_sizes
+                        : [];
+
+                const selectedSizeData =
+                    sizes.find(
+                        size =>
+                            String(size.size) ===
+                            normalizedSize
+                    );
+
+                const stock =
+                    selectedSizeData
+                        ? Number(selectedSizeData.stock)
+                        : null;
+
+                if (
+                    stock !== null &&
+                    Number.isFinite(stock) &&
+                    nextQuantity > stock
+                ) {
+                    return {
+                        ...item,
+                        quantity: stock
+                    };
+                }
+
+                return {
+                    ...item,
+                    quantity: nextQuantity
+                };
+            })
+        );
+    }
+    /*
+     * -----------------------------------------
+     * REMOVE FROM CART
+     * -----------------------------------------
+     */
+
+    function removeFromCart(
+        productId,
+        selectedSize = null
+    ) {
+        const normalizedSize =
+            selectedSize !== null &&
+            selectedSize !== undefined &&
+            selectedSize !== ''
+                ? String(selectedSize)
+                : null;
+
+        setCart(current =>
+            current.filter(item => {
+
+                const itemSize =
+                    item.selectedSize !== null &&
+                    item.selectedSize !== undefined &&
+                    item.selectedSize !== ''
+                        ? String(item.selectedSize)
+                        : null;
+
+                return !(
+                    String(item.id) === String(productId) &&
+                    itemSize === normalizedSize
+                );
+            })
+        );
+    }
+
+    /*
+     * -----------------------------------------
+     * CLEAR CART
+     * -----------------------------------------
+     */
+
+
+
+    function clearCart() {
+        setCart([]);
+    }
+
+    /*
+     * -----------------------------------------
+     * CHECKOUT
+     * -----------------------------------------
+     */
+
+    function handleCheckout() {
+        /*
+         * Поки просто переходимо
+         * до наступного етапу.
+         *
+         * Тут пізніше буде:
+         *
+         * /checkout
+         *
+         * де користувач введе:
+         * - ім'я
+         * - телефон
+         * - email
+         * - адресу
+         * - спосіб доставки
+         * - коментар
+         */
+
+        console.log(
+            'CHECKOUT CART:',
+            cart
+        );
+
+        /*
+         * Тимчасово можна показати alert.
+         */
+
+        alert(
+            'Оформлення замовлення буде додано наступним кроком.'
+        );
+    }
+
+    /*
+     * -----------------------------------------
+     * CART COUNT
+     * -----------------------------------------
+     */
+
+    const cartCount =
+        cart.reduce(
+            (sum, item) =>
+                sum +
+                Number(
+                    item.quantity || 0
+                ),
+            0
+        );
+
+    /*
+     * -----------------------------------------
+     * RENDER
+     * -----------------------------------------
+     */
+
     return (
         <>
             <Header
-                count={cart.reduce(
-                    (sum, item) =>
-                        sum + (item.quantity || 1),
-                    0
-                )}
+                count={cartCount}
             />
 
             <Routes>
@@ -314,8 +867,12 @@ export default function App() {
                         <Home
                             products={products}
                             onAdd={addToCart}
-                            loading={productsLoading}
-                            error={productsError}
+                            loading={
+                                productsLoading
+                            }
+                            error={
+                                productsError
+                            }
                         />
                     }
                 />
@@ -332,7 +889,9 @@ export default function App() {
 
                 <Route
                     path="/login"
-                    element={<Auth />}
+                    element={
+                        <Auth />
+                    }
                 />
 
                 <Route
@@ -346,30 +905,68 @@ export default function App() {
 
                 <Route
                     path="/account"
-                    element={<Account />}
+                    element={
+                        <Account />
+                    }
                 />
 
                 <Route
                     path="/wishlist"
-                    element={<Wishlist />}
+                    element={
+                        <Wishlist />
+                    }
+                />
+
+                <Route
+                    path="/cart"
+                    element={
+                        <Cart
+                            cart={cart}
+                            updateCartQuantity={updateCartQuantity}
+                            removeFromCart={removeFromCart}
+                            clearCart={clearCart}
+                        />
+                    }
                 />
 
                 <Route
                     path={`/${adminPath}/*`}
-                    element={<Admin />}
+                    element={
+                        <Admin />
+                    }
                 />
 
             </Routes>
 
-            {cart.length > 0 && (
-                <Cart
-                    cart={cart}
-                    setCart={setCart}
-                />
-            )}
+            {/* CART */}
+
+            {/*{cart.length > 0 && (*/}
+            {/*    <Cart*/}
+            {/*        cart={cart}*/}
+
+            {/*        updateCartQuantity={*/}
+            {/*            updateCartQuantity*/}
+            {/*        }*/}
+
+            {/*        removeFromCart={*/}
+            {/*            removeFromCart*/}
+            {/*        }*/}
+
+            {/*        clearCart={*/}
+            {/*            clearCart*/}
+            {/*        }*/}
+
+            {/*        onCheckout={*/}
+            {/*            handleCheckout*/}
+            {/*        }*/}
+            {/*    />*/}
+            {/*)}*/}
+
+            {/* FOOTER */}
 
             <footer>
                 <div className="container footer">
+
                     <span>
                         © 2026 MoldLab
                     </span>
@@ -377,6 +974,7 @@ export default function App() {
                     <span>
                         Silicone molds for chocolate
                     </span>
+
                 </div>
             </footer>
         </>

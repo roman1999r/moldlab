@@ -94,11 +94,22 @@ Deno.serve(async (req) => {
         }
 
         const items = (fullOrder.items || [])
-            .map(
-                (item: any) =>
-                    `• ${item.name} × ${item.quantity || 1} — €${item.price}`
-            )
-            .join('\n');
+            .map((item: any) => {
+                const quantity = Number(item.quantity || 1);
+                const price = Number(item.price || 0);
+
+                const sizeLine = item.selectedSize
+                    ? `\n  📏 Розмір: ${item.selectedSize}`
+                    : '';
+
+                return (
+                    `• ${item.name}` +
+                    sizeLine +
+                    `\n  🔢 Кількість: ${quantity} шт.` +
+                    `\n  💶 Ціна: €${price.toFixed(2)}`
+                );
+            })
+            .join('\n\n');;
 
         const text =
             `🍫 MoldLab — НОВЕ ЗАМОВЛЕННЯ\n\n` +

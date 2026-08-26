@@ -197,10 +197,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
 import LanguageSwitcher from "./LanguageSwitcher.jsx";
+import {useLanguage} from "../context/LanguageContext.jsx";
+
 
 export default function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
-
+    const {language, t} = useLanguage();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -295,26 +297,26 @@ export default function Header() {
                         to="/"
                         onClick={closeMenu}
                     >
-                        Головна
+                        {t.nav.main}
                     </Link>
 
                     <Link
 
                         onClick={() => goToSection('catalog')}
                     >
-                        Товари
+                        {t.nav.catalog}
                     </Link>
 
                     <Link
                         onClick={() => goToSection('custom')}
                     >
-                        Створити
+                        {t.nav.custom}
                     </Link>
 
                     <Link
                         onClick={() => goToSection('about')}
                     >
-                        Про нас
+                        {t.nav.about}
                     </Link>
 
 
@@ -325,7 +327,7 @@ export default function Header() {
                                     to="/admin"
                                     onClick={closeMenu}
                                 >
-                                    Адмін панель
+                                    {t.nav.admin_panel}
                                 </Link>
                             ) : (
                                 <Link
