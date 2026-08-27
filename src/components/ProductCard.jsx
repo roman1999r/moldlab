@@ -726,7 +726,7 @@ export default function ProductCard({ product, onAdd }) {
                                         </span>
 
                                 {!isAvailable && (<span className="size-stock">
-                                                Немає
+
                                             </span>)}
                             </button>);
                         })}

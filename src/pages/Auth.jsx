@@ -158,6 +158,7 @@ export default function Auth() {
 
         try {
             if (mode === 'register') {
+
                 const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
@@ -168,7 +169,13 @@ export default function Auth() {
                     }
                 });
 
+
+
                 if (error) throw error;
+
+                if (!data.user) {
+                    throw new Error('Не вдалося створити користувача.');
+                }
 
                 if (!data.session) {
                     setMessage(
@@ -177,6 +184,7 @@ export default function Auth() {
                 } else {
                     navigate('/account', { replace: true });
                 }
+
             } else {
                 const { data, error } =
                     await supabase.auth.signInWithPassword({
@@ -187,40 +195,38 @@ export default function Auth() {
                 if (error) throw error;
 
                 const user = data.user;
-                console.log(user);
+
+
 
                 if (!user) {
                     throw new Error('Не вдалося отримати користувача.');
                 }
 
-                // Перевіряємо роль
                 const { data: profile, error: profileError } =
                     await supabase
                         .from('profiles')
                         .select('role')
                         .eq('id', user.id)
                         .single();
-                console.log(profile);
+
+
 
                 if (profileError) {
                     console.error('PROFILE ERROR:', profileError);
 
-                    // Якщо профілю немає — звичайний користувач
                     navigate('/account', { replace: true });
                     return;
                 }
 
                 if (profile?.role === 'admin') {
                     navigate('/admin', { replace: true });
-                    console.log(123)
                 } else {
                     navigate('/account', { replace: true });
                 }
+            }
 
+        } catch (error) {
 
-
-            }} catch (error) {
-            console.error('AUTH ERROR:', error);
             setMessage(error.message);
         } finally {
             setLoading(false);

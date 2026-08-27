@@ -322,21 +322,21 @@ export default function Header() {
 
                     {user ? (
                         <>
-                            {profile?.role === 'admin' ? (
+                            {profile?.role === 'admin' && (
                                 <Link
                                     to="/admin"
                                     onClick={closeMenu}
                                 >
                                     {t.nav.admin_panel}
                                 </Link>
-                            ) : (
-                                <Link
-                                    to="/account"
-                                    onClick={closeMenu}
-                                >
-                                    Акаунт
-                                </Link>
                             )}
+
+                            <Link
+                                to="/account"
+                                onClick={closeMenu}
+                            >
+                                Акаунт
+                            </Link>
 
                             <button
                                 type="button"

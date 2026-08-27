@@ -2005,13 +2005,15 @@ import {
     Trash2,
     Upload,
     RefreshCw,
-    Users as UsersIcon
+    Users as UsersIcon,
+    BarChart3
 } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import Users from '../components/Users';
+import Analytics from "../components/Analytics.jsx";
 
 
 async function notifyStatus(orderId, type = 'order') {
@@ -2147,11 +2149,50 @@ export default function Admin() {
     const [saving, setSaving] = useState(false);
 
 
+    const [analytics, setAnalytics] = useState([]);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+
     /*
     |--------------------------------------------------------------------------
     | VERIFY ADMIN
     |--------------------------------------------------------------------------
     */
+
+    async function loadAnalytics() {
+        if (!supabase) return;
+
+        setAnalyticsLoading(true);
+
+        console.log('LOADING ANALYTICS...');
+
+        const {
+            data,
+            error
+        } = await supabase
+            .from('site_analytics')
+            .select('*')
+            .order('created_at', {
+                ascending: false
+            })
+            .limit(5000);
+
+        console.log('ANALYTICS DATA:', data);
+        console.log('ANALYTICS ERROR:', error);
+
+        if (error) {
+            setMessage(
+                `Помилка статистики: ${error.message}`
+            );
+
+            setAnalytics([]);
+        } else {
+            setAnalytics(data || []);
+        }
+
+        setAnalyticsLoading(false);
+    }
+
 
     async function verifyAdmin(currentSession) {
         if (!currentSession || !supabase) {
@@ -2231,9 +2272,10 @@ export default function Admin() {
     */
 
     useEffect(() => {
-        if (authorized) {
-            loadAll();
-        }
+        if (!authorized) return;
+
+        loadAll();
+        loadAnalytics();
     }, [authorized]);
 
 
@@ -2789,7 +2831,7 @@ export default function Admin() {
                     </div>
 
                     <span className="eyebrow">
-                        CacaoForm Admin
+                        MoldLab Admin
                     </span>
 
                     <h1>
@@ -2866,7 +2908,9 @@ export default function Admin() {
                     ? t.admin.orders
                     : tab === 'custom'
                         ? t.admin.custom
-                        : 'Користувачі';
+                        : tab === 'analytics'
+                            ? 'Статистика'
+                            : 'Користувачі';
 
 
     /*
@@ -2891,13 +2935,12 @@ export default function Admin() {
                             className="logo"
                         >
                             <span className="logo-mark">
-                                C
-                            </span>
+                        M
+                    </span>
 
-                            Cacao
                             <span>
-                                Form
-                            </span>
+                        mold<span>lab</span>
+                    </span>
                         </Link>
 
                         <LanguageSwitcher />
@@ -2974,6 +3017,21 @@ export default function Admin() {
                             {t.admin.custom}
                         </button>
 
+                        <button
+                            className={
+                                tab === 'analytics'
+                                    ? 'active'
+                                    : ''
+                            }
+                            onClick={() =>
+                                setTab('analytics')
+                            }
+                        >
+                            <BarChart3 size={17} />
+
+                            Статистика
+                        </button>
+
 
                         <button
                             className={
@@ -3028,7 +3086,10 @@ export default function Admin() {
 
                         <button
                             className="button secondary"
-                            onClick={loadAll}
+                            onClick={() => {
+                                loadAll();
+                                loadAnalytics();
+                            }}
                         >
                             <RefreshCw
                                 size={16}
@@ -3280,6 +3341,12 @@ export default function Admin() {
                         </div>
                     )}
 
+                    {/* ANALYTICS */}
+
+                    {tab === 'analytics' && (
+                        <Analytics />
+                    )}
+
 
                     {/* USERS */}
 
@@ -3395,13 +3462,22 @@ function Products({
                     </h2>
 
                     <button
+                        type="button"
                         className="button primary"
-                        onClick={
-                            startNewProduct
-                        }
+                        onClick={() => {
+                            startNewProduct();
+
+                            setTimeout(() => {
+                                document
+                                    .getElementById('product-form-edit')
+                                    ?.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start'
+                                    });
+                            }, 100);
+                        }}
                     >
                         <Plus size={16} />
-
                         {t.admin.newProduct}
                     </button>
 
@@ -3461,12 +3537,18 @@ function Products({
 
 
                         <button
-                            className="icon-button"
-                            onClick={() =>
-                                startEditProduct(
-                                    product
-                                )
-                            }
+                            onClick={() => {
+                                startEditProduct(product);
+
+                                setTimeout(() => {
+                                    document
+                                        .getElementById('product-form-edit')
+                                        ?.scrollIntoView({
+                                            behavior: 'smooth',
+                                            block: 'start'
+                                        });
+                                }, 100);
+                            }}
                         >
                             <Pencil size={16} />
                         </button>
@@ -3500,6 +3582,7 @@ function Products({
 
             {editing && (
                 <form
+                    id="product-form-edit"
                     className="admin-panel product-form"
                     onSubmit={saveProduct}
                 >

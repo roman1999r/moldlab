@@ -438,6 +438,9 @@
 
 
 
+import { useLocation } from 'react-router-dom';
+
+import { trackPageView } from './lib/analytics';
 import { useEffect, useState } from 'react';
 import {
     Routes,
@@ -457,9 +460,23 @@ import Wishlist from './pages/Wishlist';
 import { supabase } from './lib/supabase';
 import { useAuth } from './context/AuthContext';
 import AdminRoute from './components/AdminRoute.jsx';
+import Analytics from './components/Analytics.jsx';
 
 const adminPath =
     import.meta.env.VITE_ADMIN_PATH || 'admin';
+
+
+function AnalyticsTracker() {
+    const location = useLocation();
+
+    useEffect(() => {
+        trackPageView(
+            location.pathname
+        );
+    }, [location.pathname]);
+
+    return null;
+}
 
 export default function App() {
     const { user } = useAuth();
@@ -855,6 +872,7 @@ export default function App() {
 
     return (
         <>
+            <AnalyticsTracker />
             <Header
                 count={cartCount}
             />

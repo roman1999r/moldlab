@@ -87,15 +87,6 @@ export default function Users() {
     return (
         <div>
 
-            <div className="panel-head">
-                <div>
-                    <h2>Користувачі</h2>
-                    <p className="muted">
-                        Керування доступом
-                    </p>
-                </div>
-            </div>
-
             <div className="users-search">
                 <Search size={18} />
 

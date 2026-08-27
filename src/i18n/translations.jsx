@@ -1,7 +1,7 @@
 export const translations = {
     uk: {
         language: 'Українська',
-        languages: {uk: 'Українська', pl: 'Polski', en: 'English'},
+        languages: {uk: 'UK', pl: 'PL', en: 'EN'},
         nav: {
             catalog: 'Каталог',
             process: 'Як це працює',
@@ -129,7 +129,7 @@ export const translations = {
     },
     pl: {
         language: 'Polski',
-        languages: {uk: 'Українська', pl: 'Polski', en: 'English'},
+        languages: {uk: 'UK', pl: 'PL', en: 'EN'},
         nav: {
             catalog: 'Katalog',
             process: 'Jak to działa',
@@ -257,8 +257,7 @@ export const translations = {
     },
     en: {
         language: 'English',
-        languages: {uk: 'Українська', pl: 'Polski', en: 'English'},
-        nav: {
+        languages: {uk: 'UK', pl: 'PL', en: 'EN'},        nav: {
             catalog: 'Catalog',
             process: 'How it works',
             custom: 'Custom mold',

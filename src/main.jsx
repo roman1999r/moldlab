@@ -19,15 +19,17 @@ import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 
 import './styles.css';
+import AnalyticsTracker from "./App";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-        <BrowserRouter basename="/moldlab">
-            <LanguageProvider>
-                <AuthProvider>
-                    <App />
-                </AuthProvider>
-            </LanguageProvider>
-        </BrowserRouter>
+            <BrowserRouter basename="/moldlab">
+                {/*<AnalyticsTracker />*/}
+                <LanguageProvider>
+                    <AuthProvider>
+                        <App />
+                    </AuthProvider>
+                </LanguageProvider>
+            </BrowserRouter>
     </React.StrictMode>
 );
