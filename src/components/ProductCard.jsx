@@ -471,6 +471,7 @@ export default function ProductCard({ product, onAdd }) {
         : [];
 
     const hasSizes = sizes.length > 0;
+    const [show3D, setShow3D] = useState(false);
 
     // Вибраний розмір
     const selectedSizeData = sizes.find(
@@ -684,16 +685,38 @@ export default function ProductCard({ product, onAdd }) {
         // </article>
 
         <article className="product-card">
-            <div className="product-image"><ProductModel
-                src={product.model}
-                poster={product.image}
-            />
-                <div className="three-d-badge"><Box size={14} /> 3D</div>
+            <div className="product-image">
+                {show3D ? (
+                    <ProductModel
+                        src={product.model}
+                        poster={product.image}
+                    />
+                ) : (
+                    <img
+                        src={product.image}
+                        alt={product.name}
+                        className="product-image-photo"
+                    />
+                )}
+
+                <button
+                    type="button"
+                    className="three-d-badge"
+                    onClick={() => setShow3D(prev => !prev)}
+                    aria-label={show3D ? 'Show photo' : 'Show 3D model'}
+                >
+                    <Box size={14} />
+                    {show3D ? 'Фото' : '3D'}
+                </button>
+
                 <Link
                     className="product-open"
                     to={`/product/${product.id}`}
                     aria-label={`${t.product.details || t.product.view3d}: ${product.name}`}
-                ><ArrowUpRight size={17} /></Link></div>
+                >
+                    <ArrowUpRight size={17} />
+                </Link>
+            </div>
             <div className="product-info">
                 <span className="product-category">{product.category}</span>
                 <h3>{product.name}</h3>

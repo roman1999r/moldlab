@@ -14,7 +14,7 @@ ReactDOM.createRoot(
 ).render(
     <React.StrictMode>
         <HashRouter>
-            <AnalyticsTracker />
+            {/*<AnalyticsTracker />*/}
             <LanguageProvider>
                 <AuthProvider>
                     <App />
