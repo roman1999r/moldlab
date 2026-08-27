@@ -7,13 +7,14 @@ import { LanguageProvider } from './context/LanguageContext';
 
 import './styles.css';
 import App from "./App.jsx";
+import AnalyticsTracker from "./components/AnalyticsTracker.jsx";
 
 ReactDOM.createRoot(
     document.getElementById('root')
 ).render(
     <React.StrictMode>
         <HashRouter>
-
+            <AnalyticsTracker />
             <LanguageProvider>
                 <AuthProvider>
                     <App />

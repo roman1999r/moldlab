@@ -1,89 +1,27 @@
-// import { supabase } from './supabase';
-//
-// const SESSION_KEY = 'moldlab-analytics-session';
-//
-// function getSessionId() {
-//     let sessionId =
-//         localStorage.getItem(SESSION_KEY);
-//
-//     if (!sessionId) {
-//         sessionId = crypto.randomUUID();
-//
-//         localStorage.setItem(
-//             SESSION_KEY,
-//             sessionId
-//         );
-//     }
-//
-//     return sessionId;
-// }
-//
-// function getDevice() {
-//     const width = window.innerWidth;
-//
-//     if (width < 768) {
-//         return 'mobile';
-//     }
-//
-//     if (width < 1024) {
-//         return 'tablet';
-//     }
-//
-//     return 'desktop';
-// }
-//
-// export async function trackPageView(page) {
-//     if (!supabase) return;
-//
-//     try {
-//         const sessionId =
-//             getSessionId();
-//
-//         const {
-//             error
-//         } = await supabase
-//             .from('site_analytics')
-//             .insert({
-//                 session_id: sessionId,
-//                 event_type: 'page_view',
-//                 page,
-//                 device: getDevice()
-//             });
-//
-//         if (error) {
-//             console.error(
-//                 'Analytics error:',
-//                 error
-//             );
-//         }
-//
-//     } catch (error) {
-//         console.error(
-//             'Analytics exception:',
-//             error
-//         );
-//     }
-// }
-
-
 import { supabase } from './supabase';
 
 const SESSION_KEY = 'moldlab-analytics-session';
 
-function getSessionId() {
-    let sessionId = localStorage.getItem(SESSION_KEY);
+const IS_DEV =
+    import.meta.env.DEV ||
+    window.location.hostname.includes('github.io');
 
-    if (!sessionId) {
-        sessionId = crypto.randomUUID();
-
-        localStorage.setItem(
-            SESSION_KEY,
-            sessionId
-        );
+function log(...args) {
+    if (IS_DEV) {
+        console.log('[ANALYTICS]', ...args);
     }
-
-    return sessionId;
 }
+
+function logError(...args) {
+    console.error('[ANALYTICS]', ...args);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| DEVICE
+|--------------------------------------------------------------------------
+*/
 
 function getDevice() {
     const width = window.innerWidth;
@@ -94,52 +32,335 @@ function getDevice() {
     return 'desktop';
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| SESSION
+|--------------------------------------------------------------------------
+*/
+
+function getSessionId() {
+    try {
+        let sessionId =
+            localStorage.getItem(SESSION_KEY);
+
+        if (!sessionId) {
+            sessionId = crypto.randomUUID();
+
+            localStorage.setItem(
+                SESSION_KEY,
+                sessionId
+            );
+
+            log(
+                'NEW SESSION CREATED:',
+                sessionId
+            );
+        } else {
+            log(
+                'EXISTING SESSION:',
+                sessionId
+            );
+        }
+
+        return sessionId;
+
+    } catch (error) {
+        logError(
+            '❌ LOCAL STORAGE ERROR:',
+            error
+        );
+
+        /*
+         * Якщо localStorage заблокований,
+         * все одно створюємо session ID.
+         */
+
+        return crypto.randomUUID();
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| MOBILE DEBUG
+|--------------------------------------------------------------------------
+*/
+
+function getEnvironmentInfo() {
+    return {
+        hostname: window.location.hostname,
+        href: window.location.href,
+
+        pathname: window.location.pathname,
+
+        userAgent:
+        navigator.userAgent,
+
+        language:
+        navigator.language,
+
+        online:
+        navigator.onLine,
+
+        width:
+        window.innerWidth,
+
+        height:
+        window.innerHeight,
+
+        devicePixelRatio:
+        window.devicePixelRatio,
+
+        device:
+            getDevice(),
+
+        localStorage:
+            typeof localStorage !== 'undefined',
+
+        crypto:
+            typeof crypto !== 'undefined' &&
+            typeof crypto.randomUUID === 'function'
+    };
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| TRACK PAGE VIEW
+|--------------------------------------------------------------------------
+*/
+
 export async function trackPageView(page) {
-    console.log('========== ANALYTICS START ==========');
-    console.log('Supabase:', supabase);
-    console.log('Page:', page);
+
+    console.log(
+        '========================================'
+    );
+
+    console.log(
+        '📊 ANALYTICS TRACK START'
+    );
+
+    console.log(
+        'Environment:',
+        getEnvironmentInfo()
+    );
+
+
+    /*
+     * SUPABASE
+     */
 
     if (!supabase) {
-        console.error('❌ SUPABASE IS NULL');
+
+        logError(
+            '❌ SUPABASE IS NULL'
+        );
+
         return;
     }
 
-    const sessionId = getSessionId();
-    const device = getDevice();
+    log(
+        '✅ Supabase client exists'
+    );
 
-    console.log('Session:', sessionId);
-    console.log('Device:', device);
+
+    /*
+     * SESSION
+     */
+
+    const sessionId =
+        getSessionId();
+
+
+    /*
+     * DEVICE
+     */
+
+    const device =
+        getDevice();
+
+
+    log(
+        'Device detected:',
+        device
+    );
+
+    log(
+        'Screen:',
+        window.innerWidth,
+        'x',
+        window.innerHeight
+    );
+
+
+    /*
+     * PAYLOAD
+     */
 
     const payload = {
-        session_id: sessionId,
-        event_type: 'page_view',
-        page,
+
+        session_id:
+        sessionId,
+
+        event_type:
+            'page_view',
+
+        page:
+            page || '/',
+
+        device:
         device
     };
 
-    console.log('INSERT PAYLOAD:', payload);
 
-    const {
-        data,
-        error
-    } = await supabase
-        .from('site_analytics')
-        .insert(payload)
-        .select();
+    console.log(
+        '📦 ANALYTICS PAYLOAD:',
+        payload
+    );
 
-    console.log('INSERT DATA:', data);
-    console.log('INSERT ERROR:', error);
 
-    if (error) {
-        console.error(
-            '❌ ANALYTICS INSERT FAILED',
-            error
+    /*
+     * ONLINE CHECK
+     */
+
+    if (!navigator.onLine) {
+
+        logError(
+            '❌ DEVICE IS OFFLINE'
         );
-    } else {
+
+        return;
+    }
+
+
+    log(
+        '🌐 Device is online'
+    );
+
+
+    /*
+     * SUPABASE INSERT
+     */
+
+    const startTime =
+        performance.now();
+
+
+    try {
+
+        log(
+            '🚀 Sending INSERT to Supabase...'
+        );
+
+
+        const {
+            data,
+            error
+        } = await supabase
+            .from('site_analytics')
+            .insert(payload)
+            .select();
+
+
+        const duration =
+            Math.round(
+                performance.now() -
+                startTime
+            );
+
+
+        console.log(
+            '⏱️ Supabase response time:',
+            `${duration}ms`
+        );
+
+
+        /*
+         * ERROR
+         */
+
+        if (error) {
+
+            console.error(
+                '❌ SUPABASE ANALYTICS ERROR'
+            );
+
+            console.error(
+                'Code:',
+                error.code
+            );
+
+            console.error(
+                'Message:',
+                error.message
+            );
+
+            console.error(
+                'Details:',
+                error.details
+            );
+
+            console.error(
+                'Hint:',
+                error.hint
+            );
+
+            console.error(
+                'Full error:',
+                error
+            );
+
+            return;
+        }
+
+
+        /*
+         * SUCCESS
+         */
+
         console.log(
             '✅ ANALYTICS INSERT SUCCESS'
         );
+
+        console.log(
+            'Inserted data:',
+            data
+        );
+
+        console.log(
+            'Session ID:',
+            sessionId
+        );
+
+        console.log(
+            'Device:',
+            device
+        );
+
+        console.log(
+            'Page:',
+            page
+        );
+
+    } catch (error) {
+
+        console.error(
+            '💥 ANALYTICS EXCEPTION'
+        );
+
+        console.error(
+            error
+        );
+
     }
 
-    console.log('========== ANALYTICS END ==========');
+
+    console.log(
+        '📊 ANALYTICS TRACK END'
+    );
+
+    console.log(
+        '========================================'
+    );
 }
