@@ -211,7 +211,6 @@ export default function Header() {
         profile,
         logout
     } = useAuth();
-    console.log(profile);
     const {
         wishlist
     } = useWishlist();
