@@ -456,7 +456,7 @@
 
 
 
-import { useState } from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Box, ShoppingBag,ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductModel from "./ProductModel.jsx";
@@ -472,6 +472,7 @@ export default function ProductCard({ product, onAdd }) {
 
     const hasSizes = sizes.length > 0;
     const [show3D, setShow3D] = useState(false);
+    const modelContainerRef = useRef(null);
 
     // Вибраний розмір
     const selectedSizeData = sizes.find(
@@ -486,6 +487,29 @@ export default function ProductCard({ product, onAdd }) {
             Number(selectedSizeData.stock) > 0
         )
         : Number(product?.stock || 0) > 0;
+
+
+    useEffect(() => {
+        if (!show3D || !modelContainerRef.current) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // Модель повністю вийшла з екрану
+                if (!entry.isIntersecting) {
+                    setShow3D(false);
+                }
+            },
+            {
+                threshold: 0
+            }
+        );
+
+        observer.observe(modelContainerRef.current);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [show3D]);
 
     function handleAdd() {
         // Якщо є розміри — спочатку треба вибрати розмір
@@ -504,188 +528,10 @@ export default function ProductCard({ product, onAdd }) {
 
     return (
 
-        // <article className="product-card">
-        //
-        //     {/* IMAGE */}
-        //     <div className="product-image">
-        //         {product?.image_url ? (
-        //             <img
-        //                 src={product.image_url}
-        //                 alt={product.name || 'Товар'}
-        //             />
-        //         ) : (
-        //             <div className="product-image-placeholder">
-        //                 Немає фото
-        //             </div>
-        //         )}
-        //
-        //         {product?.featured && (
-        //             <span className="product-featured">
-        //                 Популярне
-        //             </span>
-        //         )}
-        //     </div>
-        //
-        //     {/* CONTENT */}
-        //     <div className="product-content">
-        //
-        //         {/* CATEGORY */}
-        //         {product?.category && (
-        //             <div className="product-category">
-        //                 {product.category}
-        //             </div>
-        //         )}
-        //
-        //         {/* NAME */}
-        //         <h3 className="product-title">
-        //             {product?.name}
-        //         </h3>
-        //
-        //         {/* DESCRIPTION */}
-        //         {product?.description && (
-        //             <p className="product-description">
-        //                 {product.description}
-        //             </p>
-        //         )}
-        //
-        //         {/* SIZES */}
-        //         {hasSizes && (
-        //             <div className="product-sizes">
-        //
-        //                 <span className="product-sizes-title">
-        //                     Розмір:
-        //                 </span>
-        //
-        //                 <div className="size-list">
-        //
-        //                     {sizes.map(item => {
-        //                         const isSelected =
-        //                             selectedSize === item.size;
-        //
-        //                         const isAvailable =
-        //                             Number(item.stock) > 0;
-        //
-        //                         return (
-        //                             <button
-        //                                 key={
-        //                                     item.id ||
-        //                                     item.size
-        //                                 }
-        //                                 type="button"
-        //                                 className={[
-        //                                     'size-button',
-        //                                     isSelected
-        //                                         ? 'selected'
-        //                                         : '',
-        //                                     !isAvailable
-        //                                         ? 'disabled'
-        //                                         : ''
-        //                                 ]
-        //                                     .filter(Boolean)
-        //                                     .join(' ')}
-        //                                 disabled={!isAvailable}
-        //                                 onClick={() =>
-        //                                     setSelectedSize(
-        //                                         item.size
-        //                                     )
-        //                                 }
-        //                             >
-        //                                 <span>
-        //                                     {item.size}
-        //                                 </span>
-        //
-        //                                 {!isAvailable && (
-        //                                     <span className="size-stock">
-        //                                         Немає
-        //                                     </span>
-        //                                 )}
-        //                             </button>
-        //                         );
-        //                     })}
-        //
-        //                 </div>
-        //             </div>
-        //         )}
-        //
-        //         {/* STOCK */}
-        //         {hasSizes && selectedSizeData && (
-        //             <div className="product-stock">
-        //
-        //                 {Number(
-        //                     selectedSizeData.stock
-        //                 ) > 0 ? (
-        //                     <>
-        //                         В наявності:{' '}
-        //                         {selectedSizeData.stock} шт.
-        //                     </>
-        //                 ) : (
-        //                     'Немає в наявності'
-        //                 )}
-        //
-        //             </div>
-        //         )}
-        //
-        //         {/* Якщо є розміри, але нічого не вибрано */}
-        //         {hasSizes && !selectedSize && (
-        //             <div className="product-stock">
-        //                 Оберіть розмір
-        //             </div>
-        //         )}
-        //
-        //         {/* Якщо розмірів немає */}
-        //         {!hasSizes && (
-        //             <div className="product-stock">
-        //                 {Number(product?.stock || 0) > 0
-        //                     ? `В наявності: ${product.stock} шт.`
-        //                     : 'Немає в наявності'}
-        //             </div>
-        //         )}
-        //
-        //         {/* PRICE + CART */}
-        //         <div className="product-bottom">
-        //
-        //             {/* PRICE */}
-        //             <div className="product-bottom">
-        //
-        //                 {product?.old_price && (
-        //                     <span className="product-old-price">
-        //                         {product.old_price} $
-        //                     </span>
-        //                 )}
-        //
-        //                 <strong>
-        //                     {product?.price} $
-        //                 </strong>
-        //
-        //             </div>
-        //
-        //             {/* ADD TO CART */}
-        //             <button
-        //                 type="button"
-        //                 className="add-button"
-        //                 disabled={
-        //                     !available ||
-        //                     (hasSizes && !selectedSize)
-        //                 }
-        //                 onClick={handleAdd}
-        //             >
-        //                 <ShoppingBag size={18} />
-        //
-        //                 {hasSizes && !selectedSize
-        //                     ? 'Оберіть розмір'
-        //                     : available
-        //                         ? 'До кошика'
-        //                         : 'Немає в наявності'}
-        //             </button>
-        //
-        //         </div>
-        //
-        //     </div>
-        //
-        // </article>
 
         <article className="product-card">
-            <div className="product-image">
+            <div ref={modelContainerRef} className="product-image">
+
                 {show3D ? (
                     <ProductModel
                         src={product.model}
@@ -786,6 +632,7 @@ export default function ProductCard({ product, onAdd }) {
                         <del>€{product.oldPrice}</del>}</div>
 
                     <button
+
                         type="button"
                         className="add-button"
                         disabled={!available || (hasSizes && !selectedSize)}

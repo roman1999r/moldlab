@@ -5192,8 +5192,8 @@ textarea {
 .logo {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
-    font-size: 20px;
+    gap: 4px;
+    font-size: 24px;
     font-weight: 800;
     white-space: nowrap;
 }
@@ -5650,6 +5650,9 @@ h2 em {
 
 .size-button:not(:disabled):hover {
     transform: scale(1.08);
+    background: var(--ink);
+    color: var(--line);
+
 }
 
 .size-button.disabled {
@@ -5664,6 +5667,11 @@ h2 em {
 .size-button.disabled .size-stock {
     color: #aaa;
     text-decoration: line-through;
+}
+
+.product-size-options{
+    display: flex;
+    gap: 3px;
 }
 
 .model {
@@ -5951,6 +5959,13 @@ h2 em {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+}
+
+.form-grid select {
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--white);
 }
 
 /* Forms */
@@ -6511,6 +6526,30 @@ h2 em {
     margin: 0 0 18px;
     font-size: 26px;
 }
+
+.category-create{
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.category-create-input{
+    width: 100%;
+    padding: 12px 13px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fffdf9;
+    color: var(--ink);
+}
+
+.category-admin-row{
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 18px;
+}
+
 
 .panel-head {
     display: flex;
@@ -7493,6 +7532,11 @@ h2 em {
     .grid {
         grid-template-columns: 1fr;
     }
+    .section {
+        display: grid;
+        grid-template-columns: 2fr;
+
+    }
 
     .section-head {
         display: block;
@@ -7790,6 +7834,7 @@ h2 em {
         grid-template-columns: 1fr;
     }
 
+
     /* Auth */
 
     .auth-card {
@@ -7953,9 +7998,13 @@ h2 em {
     }
 
     .admin-sidebar {
-        width: 220px;
         min-width: 220px;
         padding: 20px 12px;
+    }
+    .admin-menu {
+        display: grid;
+        flex-direction: column;
+        gap: 5px;
     }
 
 
@@ -7986,9 +8035,11 @@ h2 em {
 
     .admin-page {
         padding: 12px 0;
+
     }
 
     .admin-shell {
+        padding: 12px 0;
         grid-template-columns: 1fr;
         gap: 12px;
     }
@@ -8006,11 +8057,12 @@ h2 em {
         margin-bottom: 12px;
     }
 
+
+
     .admin-menu {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 5px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
 
     .admin-menu button {
         justify-content: center;

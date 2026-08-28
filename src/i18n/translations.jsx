@@ -1,7 +1,7 @@
 export const translations = {
     uk: {
         language: 'Українська',
-        languages: {uk: 'UK', pl: 'PL', en: 'EN'},
+        languages: {uk: 'UA', pl: 'PL', en: 'EN'},
         nav: {
             catalog: 'Каталог',
             process: 'Як це працює',
@@ -9,7 +9,9 @@ export const translations = {
             about: 'Про нас',
             cart: 'Кошик',
             main: "Головна",
-            admin_panel: "Адмін панель"
+            admin_panel: "Адмін панель",
+            pagina: "Акаунт",
+            exit: "Вийти"
         },
         hero: {
             eyebrow: 'Для шоколатьє',
@@ -17,10 +19,10 @@ export const translations = {
             text: 'Авторські силіконові форми для шоколаду. Готові дизайни та індивідуальні форми за вашим ескізом, логотипом або 3D-моделлю.',
             catalog: 'Переглянути каталог',
             custom: 'Створити свою форму',
-            trust: '✓ Детальний рельєф  ✓ Багаторазове використання  ✓ Custom design'
+            trust: '✓ Детальний рельєф  ✓ Багаторазове використання  ✓ Індивідуальний дизайн'
         },
         catalog: {
-            eyebrow: 'Колекція',
+            eyebrow: 'Каталог',
             title: <>Форми, які хочеться<br />залити шоколадом.</>,
             text: 'Кожна модель має інтерактивний 3D-перегляд. Покрутіть форму перед покупкою.',
             all: 'Всі'
@@ -31,14 +33,14 @@ export const translations = {
             steps: [['01', 'Ідея', 'Ескіз, фото, логотип або просто опис задуму.'], ['02', '3D-модель', 'Створюємо та погоджуємо цифрову геометрію.'], ['03', 'Майстер-модель', 'Виготовляємо точну майстер-модель 3D-друком.'], ['04', 'Силікон', 'Створюємо готову багаторазову форму.']]
         },
         custom: {
-            eyebrow: 'Custom made',
+            eyebrow: 'Індивідуальна форма',
             title: <>Ваш логотип.<br /><em>Ваша форма.</em></>,
             text: 'Надішліть ескіз, логотип, фото або 3D-файл. Ми перетворимо ідею на форму для шоколаду.',
             what: 'Що можна надіслати?',
             bullets: ['Ескіз або фотографію', 'Логотип SVG / PNG', '3D STL / OBJ', 'Або просто опис ідеї']
         },
         about: {
-            eyebrow: 'CacaoForm',
+            eyebrow: 'Про нас',
             title: <>Маленькі деталі роблять<br />шоколад особливим.</>,
             text: 'Форми для кондитерів, домашніх шоколатьє та брендів, які хочуть робити продукт, що запамʼятовується.'
         },
@@ -129,7 +131,7 @@ export const translations = {
     },
     pl: {
         language: 'Polski',
-        languages: {uk: 'UK', pl: 'PL', en: 'EN'},
+        languages: {uk: 'UA', pl: 'PL', en: 'EN'},
         nav: {
             catalog: 'Katalog',
             process: 'Jak to działa',
@@ -137,7 +139,9 @@ export const translations = {
             about: 'O nas',
             cart: 'Koszyk',
             main: "Strona główna",
-            admin_panel: "Panel admina"
+            admin_panel: "Panel admina",
+            pagina: "Profil",
+            exit: "Wyjście"
         },
         hero: {
             eyebrow: 'Dla czekoladników',
@@ -145,7 +149,7 @@ export const translations = {
             text: 'Autorskie silikonowe formy do czekolady. Gotowe projekty oraz formy na zamówienie według szkicu, logo lub modelu 3D.',
             catalog: 'Zobacz katalog',
             custom: 'Stwórz własną formę',
-            trust: '✓ Detaliczny relief  ✓ Wielokrotnego użytku  ✓ Custom design'
+            trust: '✓ Detaliczny relief  ✓ Wielokrotnego użytku  ✓ Indywidualny projekt'
         },
         catalog: {
             eyebrow: 'Kolekcja',
@@ -166,7 +170,7 @@ export const translations = {
             bullets: ['Szkic lub zdjęcie', 'Logo SVG / PNG', '3D STL / OBJ', 'Lub po prostu opis pomysłu']
         },
         about: {
-            eyebrow: 'CacaoForm',
+            eyebrow: 'O nas',
             title: <>Małe detale sprawiają,<br />że czekolada jest wyjątkowa.</>,
             text: 'Formy dla cukierników, domowych czekoladników i marek, które chcą tworzyć produkty zapadające w pamięć.'
         },
@@ -257,14 +261,16 @@ export const translations = {
     },
     en: {
         language: 'English',
-        languages: {uk: 'UK', pl: 'PL', en: 'EN'},        nav: {
+        languages: {uk: 'UA', pl: 'PL', en: 'EN'},        nav: {
             catalog: 'Catalog',
             process: 'How it works',
             custom: 'Custom mold',
             about: 'About us',
             cart: 'Cart',
             main: "Homepage ",
-            admin_panel: "Admin pane"
+            admin_panel: "Admin panel",
+            pagina: "Account",
+            exit: "Logout"
         },
         hero: {
             eyebrow: 'For chocolatiers',
@@ -286,14 +292,14 @@ export const translations = {
             steps: [['01', 'Idea', 'A sketch, photo, logo or simply a description.'], ['02', '3D model', 'We create and approve the digital geometry.'], ['03', 'Master model', 'We produce a precise master model with 3D printing.'], ['04', 'Silicone', 'We create the finished reusable silicone mold.']]
         },
         custom: {
-            eyebrow: 'Custom made',
+            eyebrow: 'Custom mold',
             title: <>Your logo.<br /><em>Your mold.</em></>,
             text: 'Send us a sketch, logo, photo or 3D file. We will turn the idea into a chocolate mold.',
             what: 'What can you send?',
             bullets: ['Sketch or photo', 'SVG / PNG logo', '3D STL / OBJ', 'Or simply a description']
         },
         about: {
-            eyebrow: 'CacaoForm',
+            eyebrow: 'About us',
             title: <>Small details make<br />chocolate special.</>,
             text: 'Molds for pastry chefs, home chocolatiers and brands that want to create memorable products.'
         },

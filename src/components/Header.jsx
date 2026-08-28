@@ -282,7 +282,7 @@ export default function Header() {
                     </span>
 
                     <span>
-                        mold<span>lab</span>
+                        old<span>lab</span>
                     </span>
                 </Link>
 
@@ -293,8 +293,7 @@ export default function Header() {
                     }`}
                 >
                     <Link
-                        to="/"
-                        onClick={closeMenu}
+                        onClick={() => goToSection('hero')}
                     >
                         {t.nav.main}
                     </Link>
@@ -334,7 +333,7 @@ export default function Header() {
                                 to="/account"
                                 onClick={closeMenu}
                             >
-                                Акаунт
+                                {t.nav.pagina}
                             </Link>
 
                             <button
@@ -342,7 +341,7 @@ export default function Header() {
                                 className="button secondary"
                                 onClick={handleLogout}
                             >
-                                Вийти
+                                {t.nav.exit}
                             </button>
                         </>
                     ) : (

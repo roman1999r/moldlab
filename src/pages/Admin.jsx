@@ -2044,22 +2044,25 @@ async function notifyStatus(orderId, type = 'order') {
 |--------------------------------------------------------------------------
 */
 
-const AVAILABLE_SIZES = [
-    'XS',
-    'S',
-    'M',
-    'L',
-    'XL',
-    'XXL'
-];
-
-
+// const AVAILABLE_SIZES = [
+//     'XS',
+//     'S',
+//     'M',
+//     'L',
+//     'XL',
+//     'XXL'
+// ];
+//
+//
+// function createEmptySizes() {
+//     return AVAILABLE_SIZES.map(size => ({
+//         size,
+//         stock: 0,
+//         enabled: false
+//     }));
+// }
 function createEmptySizes() {
-    return AVAILABLE_SIZES.map(size => ({
-        size,
-        stock: 0,
-        enabled: false
-    }));
+    return [];
 }
 
 
@@ -2073,7 +2076,7 @@ const emptyProduct = {
     id: null,
 
     name: '',
-    category: 'Фігурки',
+    category_id: '',
     description: '',
 
     price: '',
@@ -2087,7 +2090,7 @@ const emptyProduct = {
 
     featured: false,
 
-    sizes: createEmptySizes()
+    sizes: []
 };
 
 
@@ -2151,7 +2154,160 @@ export default function Admin() {
 
     const [analytics, setAnalytics] = useState([]);
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [newCategorySlug, setNewCategorySlug] = useState('');
 
+
+
+
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | CATEGORY
+    |--------------------------------------------------------------------------
+    */
+
+
+    async function loadCategories() {
+        if (!supabase) return;
+
+        const {
+            data,
+            error
+        } = await supabase
+            .from('categories')
+            .select('id, name, slug, active, created_at')
+            .order('name', {
+                ascending: true
+            });
+
+        if (error) {
+            console.error('LOAD CATEGORIES ERROR:', error);
+            setMessage(`Помилка категорій: ${error.message}`);
+            return;
+        }
+
+        setCategories(data || []);
+    }
+
+    async function addCategory() {
+        const name = newCategoryName.trim();
+        const slug = newCategorySlug.trim();
+
+        if (!name || !slug) {
+            setMessage('Вкажіть назву та slug категорії.');
+            return;
+        }
+
+        const {
+            data,
+            error
+        } = await supabase
+            .from('categories')
+            .insert({
+                name,
+                slug,
+                active: true
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('ADD CATEGORY ERROR:', error);
+            setMessage(error.message);
+            return;
+        }
+
+        setCategories(current => [
+            ...current,
+            data
+        ].sort((a, b) =>
+            a.name.localeCompare(b.name)
+        ));
+
+        setNewCategoryName('');
+        setNewCategorySlug('');
+
+        setMessage('Категорію додано.');
+    }
+
+    async function toggleCategory(category) {
+        const {
+            error
+        } = await supabase
+            .from('categories')
+            .update({
+                active: !category.active
+            })
+            .eq('id', category.id);
+
+        if (error) {
+            console.error('TOGGLE CATEGORY ERROR:', error);
+            setMessage(error.message);
+            return;
+        }
+
+        setCategories(current =>
+            current.map(item =>
+                item.id === category.id
+                    ? {
+                        ...item,
+                        active: !item.active
+                    }
+                    : item
+            )
+        );
+    }
+
+    async function removeCategory(category) {
+        const confirmed = window.confirm(
+            `Видалити категорію "${category.name}"?`
+        );
+
+        if (!confirmed) return;
+
+        const {
+            error
+        } = await supabase
+            .from('categories')
+            .delete()
+            .eq('id', category.id);
+
+        if (error) {
+            console.error('DELETE CATEGORY ERROR:', error);
+            setMessage(error.message);
+            return;
+        }
+
+        setCategories(current =>
+            current.filter(
+                item => item.id !== category.id
+            )
+        );
+
+        setMessage('Категорію видалено.');
+    }
+
+
+
+    // async function loadCategories() {
+    //     const {
+    //         data,
+    //         error
+    //     } = await supabase
+    //         .from('categories')
+    //         .select('*')
+    //         .order('name');
+    //
+    //     if (error) {
+    //         console.error('LOAD CATEGORIES ERROR:', error);
+    //         return;
+    //     }
+    //
+    //     setCategories(data || []);
+    // }
 
     /*
     |--------------------------------------------------------------------------
@@ -2276,6 +2432,7 @@ export default function Admin() {
 
         loadAll();
         loadAnalytics();
+        loadCategories();
     }, [authorized]);
 
 
@@ -2330,24 +2487,31 @@ export default function Admin() {
             setMessage(customOrdersResponse.error.message);
         }
 
-
         const productsWithSizes = (
             productsResponse.data || []
         ).map(product => ({
             ...product,
-
-            sizes: AVAILABLE_SIZES.map(size => {
-                const existing = (
-                    product.product_sizes || []
-                ).find(item => item.size === size);
-
-                return {
-                    size,
-                    stock: existing?.stock || 0,
-                    enabled: Boolean(existing)
-                };
-            })
+            sizes: product.product_sizes || []
         }));
+
+
+        // const productsWithSizes = (
+        //     productsResponse.data || []
+        // ).map(product => ({
+        //     ...product,
+        //
+        //     sizes: AVAILABLE_SIZES.map(size => {
+        //         const existing = (
+        //             product.product_sizes || []
+        //         ).find(item => item.size === size);
+        //
+        //         return {
+        //             size,
+        //             stock: existing?.stock || 0,
+        //             enabled: Boolean(existing)
+        //         };
+        //     })
+        // }));
 
 
         setProducts(productsWithSizes);
@@ -2426,7 +2590,7 @@ export default function Admin() {
             const payload = {
                 name: editing.name.trim(),
 
-                category: editing.category.trim(),
+                category_id: editing.category_id,
 
                 description:
                     editing.description?.trim() || null,
@@ -2509,21 +2673,31 @@ export default function Admin() {
             | 2. PRODUCT SIZES
             |--------------------------------------------------------------------------
             */
-
-            const selectedSizes = (
-                editing.sizes || []
-            )
-                .filter(item => item.enabled)
+            const selectedSizes = (editing.sizes || [])
+                .filter(item => item.size?.trim())
                 .map(item => ({
                     product_id: productId,
-
-                    size: item.size,
-
+                    size: item.size.trim(),
                     stock: Math.max(
                         0,
                         Number(item.stock) || 0
                     )
                 }));
+
+            // const selectedSizes = (
+            //     editing.sizes || []
+            // )
+            //     .filter(item => item.enabled)
+            //     .map(item => ({
+            //         product_id: productId,
+            //
+            //         size: item.size,
+            //
+            //         stock: Math.max(
+            //             0,
+            //             Number(item.stock) || 0
+            //         )
+            //     }));
 
 
             /*
@@ -2908,6 +3082,8 @@ export default function Admin() {
                     ? t.admin.orders
                     : tab === 'custom'
                         ? t.admin.custom
+                        : tab === 'categories'
+                            ? 'Категорії'
                         : tab === 'analytics'
                             ? 'Статистика'
                             : 'Користувачі';
@@ -3048,6 +3224,21 @@ export default function Admin() {
                             />
 
                             Користувачі
+                        </button>
+
+                        <button
+                            className={
+                                tab === 'categories'
+                                    ? 'active'
+                                    : ''
+                            }
+                            onClick={() =>
+                                setTab('categories')
+                            }
+                        >
+                            <ClipboardList size={17} />
+
+                            Категорії
                         </button>
 
                     </div>
@@ -3202,6 +3393,7 @@ export default function Admin() {
                     {tab === 'products' && (
                         <Products
                             products={products}
+                            categories={categories}
                             editing={editing}
                             setEditing={setEditing}
                             saveProduct={saveProduct}
@@ -3354,6 +3546,133 @@ export default function Admin() {
                         <Users />
                     )}
 
+                    {tab === 'categories' && (
+                        <div className="admin-panel">
+
+                            <div className="panel-head">
+                                <div>
+                                    <h2>Категорії товарів</h2>
+
+                                    <p className="muted">
+                                        Увімкнені категорії будуть показуватися
+                                        на сайті.
+                                    </p>
+                                </div>
+                            </div>
+
+
+                            {/* ADD CATEGORY */}
+
+                            <div className="category-create">
+
+                                <input
+                                    className={"category-create-input"}
+                                    type="text"
+                                    placeholder="Назва категорії"
+                                    value={newCategoryName}
+                                    onChange={e =>
+                                        setNewCategoryName(
+                                            e.target.value
+                                        )
+                                    }
+                                />
+
+                                <input
+                                    className={"category-create-input"}
+                                    type="text"
+                                    placeholder="slug, наприклад figurky"
+                                    value={newCategorySlug}
+                                    onChange={e =>
+                                        setNewCategorySlug(
+                                            e.target.value
+                                        )
+                                    }
+                                />
+
+                                <button
+                                    type="button"
+                                    className="button primary"
+                                    onClick={addCategory}
+                                >
+                                    <Plus size={16} />
+                                    Додати
+                                </button>
+
+                            </div>
+
+
+                            {/* CATEGORIES */}
+
+                            <div className="categories-admin-list">
+
+                                {categories.map(category => (
+
+                                    <div
+                                        className="category-admin-row"
+                                        key={category.id}
+                                    >
+
+                                        <label className="category-toggle">
+
+                                            <input
+                                                type="checkbox"
+                                                checked={Boolean(
+                                                    category.active
+                                                )}
+                                                onChange={() =>
+                                                    toggleCategory(
+                                                        category
+                                                    )
+                                                }
+                                            />
+
+                                            <span>
+                            {category.name}
+                        </span>
+
+                                        </label>
+
+                                        <span
+                                            className={
+                                                category.active
+                                                    ? 'category-status active'
+                                                    : 'category-status'
+                                            }
+                                        >
+                        {category.active
+                            ? 'Показується'
+                            : 'Прихована'}
+                    </span>
+
+
+                                        <button
+                                            type="button"
+                                            className="icon-button danger"
+                                            onClick={() =>
+                                                removeCategory(
+                                                    category
+                                                )
+                                            }
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+
+                                    </div>
+
+                                ))}
+
+
+                                {!categories.length && (
+                                    <p className="muted">
+                                        Категорій ще немає.
+                                    </p>
+                                )}
+
+                            </div>
+
+                        </div>
+                    )}
+
                 </section>
 
             </div>
@@ -3371,6 +3690,7 @@ export default function Admin() {
 
 function Products({
                       products,
+                      categories,
                       editing,
                       setEditing,
                       saveProduct,
@@ -3388,64 +3708,88 @@ function Products({
         });
     }
 
+    async function startEdit(product) {
 
-    function startEditProduct(product) {
-        const sizes = createEmptySizes();
+        const { data: sizes, error } = await supabase
+            .from('product_sizes')
+            .select('id, size, stock')
+            .eq('product_id', product.id)
+            .order('created_at');
 
-        for (const size of sizes) {
-            const existing = (
-                product.product_sizes ||
-                []
-            ).find(
-                item =>
-                    item.size === size.size
-            );
-
-            if (existing) {
-                size.enabled = true;
-                size.stock =
-                    existing.stock || 0;
-            }
+        if (error) {
+            console.error('LOAD PRODUCT SIZES ERROR:', error);
+            return;
         }
-
-
-        /*
-         * Якщо loadAll вже сформував sizes
-         * використовуємо їх.
-         */
-
-        if (
-            Array.isArray(product.sizes)
-        ) {
-            for (const size of product.sizes) {
-                const target =
-                    sizes.find(
-                        item =>
-                            item.size ===
-                            size.size
-                    );
-
-                if (target) {
-                    target.enabled =
-                        Boolean(
-                            size.enabled
-                        );
-
-                    target.stock =
-                        Number(
-                            size.stock
-                        ) || 0;
-                }
-            }
-        }
-
 
         setEditing({
             ...product,
+            sizes: sizes || []
+        });
 
-            sizes
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
         });
     }
+
+
+    // function startEditProduct(product) {
+    //     const sizes = createEmptySizes();
+    //
+    //     for (const size of sizes) {
+    //         const existing = (
+    //             product.product_sizes ||
+    //             []
+    //         ).find(
+    //             item =>
+    //                 item.size === size.size
+    //         );
+    //
+    //         if (existing) {
+    //             size.enabled = true;
+    //             size.stock =
+    //                 existing.stock || 0;
+    //         }
+    //     }
+    //
+    //
+    //     /*
+    //      * Якщо loadAll вже сформував sizes
+    //      * використовуємо їх.
+    //      */
+    //
+    //     if (
+    //         Array.isArray(product.sizes)
+    //     ) {
+    //         for (const size of product.sizes) {
+    //             const target =
+    //                 sizes.find(
+    //                     item =>
+    //                         item.size ===
+    //                         size.size
+    //                 );
+    //
+    //             if (target) {
+    //                 target.enabled =
+    //                     Boolean(
+    //                         size.enabled
+    //                     );
+    //
+    //                 target.stock =
+    //                     Number(
+    //                         size.stock
+    //                     ) || 0;
+    //             }
+    //         }
+    //     }
+    //
+    //
+    //     setEditing({
+    //         ...product,
+    //
+    //         sizes
+    //     });
+    // }
 
 
     return (
@@ -3538,7 +3882,7 @@ function Products({
 
                         <button
                             onClick={() => {
-                                startEditProduct(product);
+                                startEdit(product);
 
                                 setTimeout(() => {
                                     document
@@ -3638,23 +3982,27 @@ function Products({
                         <label>
                             {t.admin.category}
 
-                            <input
+                            <select
                                 required
-                                value={
-                                    editing.category
-                                }
+                                value={editing.category_id || ''}
                                 onChange={e =>
-                                    setEditing(
-                                        current => ({
-                                            ...current,
-
-                                            category:
-                                            e.target
-                                                .value
-                                        })
-                                    )
+                                    setEditing(current => ({
+                                        ...current,
+                                        category_id: e.target.value
+                                    }))
                                 }
-                            />
+                            >
+                                <option value="">Оберіть категорію</option>
+
+                                {categories.map(category => (
+                                    <option
+                                        key={category.id}
+                                        value={category.id}
+                                    >
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
                         </label>
 
 
@@ -3765,165 +4113,296 @@ function Products({
 
                     {/* SIZES */}
 
+                    {/*<div className="product-size-manager">*/}
+
+                    {/*    <div className="size-manager-head">*/}
+
+                    {/*        <div>*/}
+                    {/*            <h3>*/}
+                    {/*                Розміри та залишки*/}
+                    {/*            </h3>*/}
+
+                    {/*            <p className="muted">*/}
+                    {/*                Виберіть розміри,*/}
+                    {/*                які будуть доступні*/}
+                    {/*                покупцю.*/}
+                    {/*            </p>*/}
+                    {/*        </div>*/}
+
+                    {/*    </div>*/}
+
+
+                    {/*    <div className="size-manager-grid">*/}
+
+                    {/*        {(editing.sizes || [])*/}
+                    {/*            .map(*/}
+                    {/*                (*/}
+                    {/*                    sizeItem,*/}
+                    {/*                    index*/}
+                    {/*                ) => (*/}
+
+                    {/*                    <div*/}
+                    {/*                        className={*/}
+                    {/*                            `size-manager-row ${*/}
+                    {/*                                sizeItem.enabled*/}
+                    {/*                                    ? 'active'*/}
+                    {/*                                    : ''*/}
+                    {/*                            }`*/}
+                    {/*                        }*/}
+                    {/*                        key={*/}
+                    {/*                            sizeItem.size*/}
+                    {/*                        }*/}
+                    {/*                    >*/}
+
+                    {/*                        <label className="size-checkbox">*/}
+
+                    {/*                            <input*/}
+                    {/*                                type="checkbox"*/}
+                    {/*                                checked={*/}
+                    {/*                                    Boolean(*/}
+                    {/*                                        sizeItem.enabled*/}
+                    {/*                                    )*/}
+                    {/*                                }*/}
+                    {/*                                onChange={*/}
+                    {/*                                    e => {*/}
+                    {/*                                        const sizes =*/}
+                    {/*                                            [*/}
+                    {/*                                                ...editing.sizes*/}
+                    {/*                                            ];*/}
+
+                    {/*                                        sizes[*/}
+                    {/*                                            index*/}
+                    {/*                                            ] = {*/}
+                    {/*                                            ...sizes[*/}
+                    {/*                                                index*/}
+                    {/*                                                ],*/}
+
+                    {/*                                            enabled:*/}
+                    {/*                                            e*/}
+                    {/*                                                .target*/}
+                    {/*                                                .checked*/}
+                    {/*                                        };*/}
+
+                    {/*                                        setEditing(*/}
+                    {/*                                            current => ({*/}
+                    {/*                                                ...current,*/}
+
+                    {/*                                                sizes*/}
+                    {/*                                            })*/}
+                    {/*                                        );*/}
+                    {/*                                    }*/}
+                    {/*                                }*/}
+                    {/*                            />*/}
+
+                    {/*                            <span>*/}
+                    {/*                                {*/}
+                    {/*                                    sizeItem.size*/}
+                    {/*                                }*/}
+                    {/*                            </span>*/}
+
+                    {/*                        </label>*/}
+
+
+                    {/*                        <label className="stock-input">*/}
+
+                    {/*                            <span>*/}
+                    {/*                                Кількість*/}
+                    {/*                            </span>*/}
+
+                    {/*                            <input*/}
+                    {/*                                type="number"*/}
+                    {/*                                min="0"*/}
+                    {/*                                disabled={*/}
+                    {/*                                    !sizeItem.enabled*/}
+                    {/*                                }*/}
+                    {/*                                value={*/}
+                    {/*                                    sizeItem.stock*/}
+                    {/*                                }*/}
+                    {/*                                onChange={*/}
+                    {/*                                    e => {*/}
+                    {/*                                        const sizes =*/}
+                    {/*                                            [*/}
+                    {/*                                                ...editing.sizes*/}
+                    {/*                                            ];*/}
+
+                    {/*                                        sizes[*/}
+                    {/*                                            index*/}
+                    {/*                                            ] = {*/}
+                    {/*                                            ...sizes[*/}
+                    {/*                                                index*/}
+                    {/*                                                ],*/}
+
+                    {/*                                            stock:*/}
+                    {/*                                            e*/}
+                    {/*                                                .target*/}
+                    {/*                                                .value*/}
+                    {/*                                        };*/}
+
+                    {/*                                        setEditing(*/}
+                    {/*                                            current => ({*/}
+                    {/*                                                ...current,*/}
+
+                    {/*                                                sizes*/}
+                    {/*                                            })*/}
+                    {/*                                        );*/}
+                    {/*                                    }*/}
+                    {/*                                }*/}
+                    {/*                            />*/}
+
+                    {/*                        </label>*/}
+
+
+                    {/*                        <span*/}
+                    {/*                            className={*/}
+                    {/*                                sizeItem.enabled*/}
+                    {/*                                    ? 'stock-status available'*/}
+                    {/*                                    : 'stock-status'*/}
+                    {/*                            }*/}
+                    {/*                        >*/}
+                    {/*                            {sizeItem.enabled*/}
+                    {/*                                ? Number(*/}
+                    {/*                                    sizeItem.stock*/}
+                    {/*                                ) > 0*/}
+                    {/*                                    ? 'В наявності'*/}
+                    {/*                                    : 'Немає'*/}
+                    {/*                                : 'Не використовується'}*/}
+                    {/*                        </span>*/}
+
+                    {/*                    </div>*/}
+
+                    {/*                )*/}
+                    {/*            )}*/}
+
+                    {/*    </div>*/}
+
+                    {/*</div>*/}\
                     <div className="product-size-manager">
 
                         <div className="size-manager-head">
-
                             <div>
-                                <h3>
-                                    Розміри та залишки
-                                </h3>
+                                <h3>Розміри та залишки</h3>
 
                                 <p className="muted">
-                                    Виберіть розміри,
-                                    які будуть доступні
-                                    покупцю.
+                                    Додайте розміри, доступні для цього товару,
+                                    та вкажіть кількість.
                                 </p>
                             </div>
 
+                            <button
+                                type="button"
+                                className="button secondary"
+                                onClick={() => {
+                                    setEditing(current => ({
+                                        ...current,
+                                        sizes: [
+                                            ...(current.sizes || []),
+                                            {
+                                                size: '',
+                                                stock: 0
+                                            }
+                                        ]
+                                    }));
+                                }}
+                            >
+                                + Додати розмір
+                            </button>
                         </div>
-
 
                         <div className="size-manager-grid">
 
-                            {(editing.sizes || [])
-                                .map(
-                                    (
-                                        sizeItem,
-                                        index
-                                    ) => (
+                            {(editing.sizes || []).map((sizeItem, index) => (
 
-                                        <div
-                                            className={
-                                                `size-manager-row ${
-                                                    sizeItem.enabled
-                                                        ? 'active'
-                                                        : ''
-                                                }`
-                                            }
-                                            key={
-                                                sizeItem.size
-                                            }
-                                        >
+                                <div
+                                    className="size-manager-row active"
+                                    key={index}
+                                >
 
-                                            <label className="size-checkbox">
+                                    <label>
+                                        <span>Розмір</span>
 
-                                                <input
-                                                    type="checkbox"
-                                                    checked={
-                                                        Boolean(
-                                                            sizeItem.enabled
-                                                        )
-                                                    }
-                                                    onChange={
-                                                        e => {
-                                                            const sizes =
-                                                                [
-                                                                    ...editing.sizes
-                                                                ];
+                                        <input
+                                            type="text"
+                                            placeholder="10×10×10"
+                                            value={sizeItem.size}
+                                            onChange={e => {
 
-                                                            sizes[
-                                                                index
-                                                                ] = {
-                                                                ...sizes[
-                                                                    index
-                                                                    ],
+                                                const sizes = [
+                                                    ...(editing.sizes || [])
+                                                ];
 
-                                                                enabled:
-                                                                e
-                                                                    .target
-                                                                    .checked
-                                                            };
+                                                sizes[index] = {
+                                                    ...sizes[index],
+                                                    size: e.target.value
+                                                };
 
-                                                            setEditing(
-                                                                current => ({
-                                                                    ...current,
-
-                                                                    sizes
-                                                                })
-                                                            );
-                                                        }
-                                                    }
-                                                />
-
-                                                <span>
-                                                    {
-                                                        sizeItem.size
-                                                    }
-                                                </span>
-
-                                            </label>
+                                                setEditing(current => ({
+                                                    ...current,
+                                                    sizes
+                                                }));
+                                            }}
+                                        />
+                                    </label>
 
 
-                                            <label className="stock-input">
+                                    <label className="stock-input">
+                                        <span>Кількість</span>
 
-                                                <span>
-                                                    Кількість
-                                                </span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={sizeItem.stock}
+                                            onChange={e => {
 
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    disabled={
-                                                        !sizeItem.enabled
-                                                    }
-                                                    value={
-                                                        sizeItem.stock
-                                                    }
-                                                    onChange={
-                                                        e => {
-                                                            const sizes =
-                                                                [
-                                                                    ...editing.sizes
-                                                                ];
+                                                const sizes = [
+                                                    ...(editing.sizes || [])
+                                                ];
 
-                                                            sizes[
-                                                                index
-                                                                ] = {
-                                                                ...sizes[
-                                                                    index
-                                                                    ],
+                                                sizes[index] = {
+                                                    ...sizes[index],
+                                                    stock: e.target.value
+                                                };
 
-                                                                stock:
-                                                                e
-                                                                    .target
-                                                                    .value
-                                                            };
-
-                                                            setEditing(
-                                                                current => ({
-                                                                    ...current,
-
-                                                                    sizes
-                                                                })
-                                                            );
-                                                        }
-                                                    }
-                                                />
-
-                                            </label>
+                                                setEditing(current => ({
+                                                    ...current,
+                                                    sizes
+                                                }));
+                                            }}
+                                        />
+                                    </label>
 
 
-                                            <span
-                                                className={
-                                                    sizeItem.enabled
-                                                        ? 'stock-status available'
-                                                        : 'stock-status'
-                                                }
-                                            >
-                                                {sizeItem.enabled
-                                                    ? Number(
-                                                        sizeItem.stock
-                                                    ) > 0
-                                                        ? 'В наявності'
-                                                        : 'Немає'
-                                                    : 'Не використовується'}
-                                            </span>
+                                    <button
+                                        type="button"
+                                        className="button danger"
+                                        onClick={() => {
 
-                                        </div>
+                                            const sizes = [
+                                                ...(editing.sizes || [])
+                                            ];
 
-                                    )
-                                )}
+                                            sizes.splice(index, 1);
+
+                                            setEditing(current => ({
+                                                ...current,
+                                                sizes
+                                            }));
+                                        }}
+                                    >
+                                        Видалити
+                                    </button>
+
+                                </div>
+
+                            ))}
+
+                            {(!editing.sizes ||
+                                editing.sizes.length === 0) && (
+
+                                <p className="muted">
+                                    Розміри ще не додані.
+                                </p>
+
+                            )}
 
                         </div>
 
