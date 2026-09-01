@@ -190,17 +190,17 @@
 //     );
 // }
 
-import { useEffect } from 'react';
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {useEffect} from 'react';
+import {useState} from 'react';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
 
-import { useAuth } from '../context/AuthContext';
-import { useWishlist } from '../hooks/useWishlist';
+import {useAuth} from '../context/AuthContext';
+import {useWishlist} from '../hooks/useWishlist';
 import LanguageSwitcher from "./LanguageSwitcher.jsx";
 import {useLanguage} from "../context/LanguageContext.jsx";
 
 
-export default function Header() {
+export default function Header({count = 0}) {
     const [menuOpen, setMenuOpen] = useState(false);
     const {language, t} = useLanguage();
     const location = useLocation();
@@ -365,14 +365,17 @@ export default function Header() {
                         className="cart-link"
                         aria-label="Корзина"
                     >
-                        <span
-                            aria-hidden="true"
-                            style={{
-                                fontSize: '18px'
-                            }}
-                        >
-                            🛒
-                        </span>
+                      <span
+                          aria-hidden="true"
+                          style={{
+                              fontSize: '18px'
+                          }}
+                      >
+                        🛒
+                      </span>
+                        {count > 0 && (<span className="cart-count">
+                        {count}
+                      </span>)}
                     </Link>
 
 

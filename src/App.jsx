@@ -441,7 +441,7 @@
 import { useLocation } from 'react-router-dom';
 
 import { trackPageView } from './lib/analytics';
-import { useEffect, useState } from 'react';
+import { useEffect, useState,useRef } from 'react';
 import {
     Routes,
     Route
@@ -479,7 +479,8 @@ export default function App() {
             return [];
         }
     });
-
+    const [cartNotification, setCartNotification] = useState(null);
+    const notificationTimer = useRef(null);
     const [products, setProducts] = useState([]);
     const [productsLoading, setProductsLoading] =
         useState(true);
@@ -572,6 +573,41 @@ export default function App() {
         loadProducts();
     }, []);
 
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('product-stock')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'product_sizes',
+                },
+                (payload) => {
+                    setProducts((currentProducts) =>
+                        currentProducts.map((product) => ({
+                            ...product,
+                            product_sizes:
+                                product.product_sizes?.map((size) =>
+                                    size.id === payload.new.id
+                                        ? {
+                                            ...size,
+                                            stock: payload.new.stock,
+                                        }
+                                        : size
+                                ),
+                        }))
+                    );
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
+
     /*
      * -----------------------------------------
      * ADD TO CART
@@ -585,6 +621,16 @@ export default function App() {
             selectedSize !== ''
                 ? String(selectedSize)
                 : null;
+
+        setCartNotification({
+            message: `${product.name}  додано до корзини`
+        });
+
+        clearTimeout(notificationTimer.current);
+
+        notificationTimer.current = setTimeout(() => {
+            setCartNotification(null);
+        }, 2500);
 
         console.log('========== APP ADD TO CART ==========');
         console.log('PRODUCT:', product);
@@ -864,6 +910,13 @@ export default function App() {
             <Header
                 count={cartCount}
             />
+
+            {cartNotification && (
+                <div className="cart-notification">
+                    <span>✓</span>
+                    <span>{cartNotification.message}</span>
+                </div>
+            )}
 
             <Routes>
 

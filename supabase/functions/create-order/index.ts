@@ -1,185 +1,185 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const cors = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers':
-        'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-    console.log('STEP 1: function started');
-
-    if (req.method === 'OPTIONS') {
-        console.log('STEP OPTIONS');
-        return new Response('ok', { headers: cors });
-    }
-
-    try {
-        console.log('STEP 2: before req.json()');
-
-        const payload = await req.json();
-
-        console.log('STEP 3: payload received');
-
-        console.log('PAYLOAD:', {
-            customer_name: payload.customer_name,
-            email: payload.email,
-            phone: payload.phone,
-            total: payload.total,
-            items_count: payload.items?.length,
-        });
-
-        console.log('STEP 4: before createClient');
-
-        const supabase = createClient(
-            Deno.env.get('SUPABASE_URL')!,
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-        );
-
-        console.log('STEP 5: supabase client created');
-
-        console.log('STEP 6: before INSERT');
-
-        const { data: order, error: orderError } = await supabase
-            .from('orders')
-            .insert({
-                customer_name: payload.customer_name,
-                email: payload.email,
-                phone: payload.phone,
-                comment: payload.comment || null,
-                items: payload.items,
-                total: payload.total,
-                status: 'new',
-            })
-            .select('id')
-            .single();
-
-        console.log('STEP 7: INSERT finished');
-
-        console.log('ORDER:', order);
-        console.log('ORDER ERROR:', orderError);
-
-        if (orderError) {
-            throw orderError;
-        }
-
-        console.log('STEP 8: before Telegram config');
-
-        const bot = Deno.env.get('TELEGRAM_BOT_TOKEN');
-        const chat = Deno.env.get('TELEGRAM_CHAT_ID');
-
-        console.log('STEP 9: Telegram config:', {
-            botConfigured: Boolean(bot),
-            chatConfigured: Boolean(chat),
-        });
-
-        if (!bot || !chat) {
-            throw new Error(
-                'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured'
-            );
-        }
-
-        console.log('STEP 10: before Telegram request');
-
-        const { data: fullOrder, error: fetchError } = await supabase
-            .from('orders')
-            .select('*')
-            .eq('id', order.id)
-            .single();
-
-        console.log('STEP 11: full order fetched');
-
-        if (fetchError) {
-            throw fetchError;
-        }
-
-        const items = (fullOrder.items || [])
-            .map((item: any) => {
-                const quantity = Number(item.quantity || 1);
-                const price = Number(item.price || 0);
-
-                const sizeLine = item.selectedSize
-                    ? `\n  📏 Розмір: ${item.selectedSize}`
-                    : '';
-
-                return (
-                    `• ${item.name}` +
-                    sizeLine +
-                    `\n  🔢 Кількість: ${quantity} шт.` +
-                    `\n  💶 Ціна: €${price.toFixed(2)}`
-                );
-            })
-            .join('\n\n');;
-
-        const text =
-            `🍫 MoldLab — НОВЕ ЗАМОВЛЕННЯ\n\n` +
-            `#${String(fullOrder.id).slice(0, 8)}\n` +
-            `👤 Клієнт: ${fullOrder.customer_name}\n` +
-            `📧 Email: ${fullOrder.email}\n` +
-            `📞 Телефон: ${fullOrder.phone}\n\n` +
-            `📦 Товари:\n${items}\n\n` +
-            `💰 Разом: €${fullOrder.total}` +
-            (fullOrder.comment
-                ? `\n\n💬 Коментар: ${fullOrder.comment}`
-                : '');
-
-        console.log('STEP 12: message prepared');
-
-        const telegramResponse = await fetch(
-            `https://api.telegram.org/bot${bot}/sendMessage`,
-            {
-                method: 'POST',
-                headers: {
-                    'content-type': 'application/json',
-                },
-                body: JSON.stringify({
-                    chat_id: chat,
-                    text,
-                }),
-            }
-        );
-
-        const telegramResult = await telegramResponse.text();
-
-        console.log('STEP 13: Telegram response:', telegramResult);
-
-        if (!telegramResponse.ok) {
-            throw new Error(`Telegram error: ${telegramResult}`);
-        }
-
-        console.log('STEP 14: SUCCESS');
-
-        return new Response(
-            JSON.stringify({
-                ok: true,
-                order_id: order.id,
-            }),
-            {
-                status: 200,
-                headers: {
-                    ...cors,
-                    'content-type': 'application/json',
-                },
-            }
-        );
-    } catch (error) {
-        console.error('CREATE ORDER ERROR:', error);
-
-        return new Response(
-            JSON.stringify({
-                ok: false,
-                error: error instanceof Error ? error.message : String(error),
-            }),
-            {
-                status: 500,
-                headers: {
-                    ...cors,
-                    'content-type': 'application/json',
-                },
-            }
-        );
-    }
-});
+// import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+//
+// const cors = {
+//     'Access-Control-Allow-Origin': '*',
+//     'Access-Control-Allow-Headers':
+//         'authorization, x-client-info, apikey, content-type',
+// };
+//
+// Deno.serve(async (req) => {
+//     console.log('STEP 1: function started');
+//
+//     if (req.method === 'OPTIONS') {
+//         console.log('STEP OPTIONS');
+//         return new Response('ok', { headers: cors });
+//     }
+//
+//     try {
+//         console.log('STEP 2: before req.json()');
+//
+//         const payload = await req.json();
+//
+//         console.log('STEP 3: payload received');
+//
+//         console.log('PAYLOAD:', {
+//             customer_name: payload.customer_name,
+//             email: payload.email,
+//             phone: payload.phone,
+//             total: payload.total,
+//             items_count: payload.items?.length,
+//         });
+//
+//         console.log('STEP 4: before createClient');
+//
+//         const supabase = createClient(
+//             Deno.env.get('SUPABASE_URL')!,
+//             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+//         );
+//
+//         console.log('STEP 5: supabase client created');
+//
+//         console.log('STEP 6: before INSERT');
+//
+//         const { data: order, error: orderError } = await supabase
+//             .from('orders')
+//             .insert({
+//                 customer_name: payload.customer_name,
+//                 email: payload.email,
+//                 phone: payload.phone,
+//                 comment: payload.comment || null,
+//                 items: payload.items,
+//                 total: payload.total,
+//                 status: 'new',
+//             })
+//             .select('id')
+//             .single();
+//
+//         console.log('STEP 7: INSERT finished');
+//
+//         console.log('ORDER:', order);
+//         console.log('ORDER ERROR:', orderError);
+//
+//         if (orderError) {
+//             throw orderError;
+//         }
+//
+//         console.log('STEP 8: before Telegram config');
+//
+//         const bot = Deno.env.get('TELEGRAM_BOT_TOKEN');
+//         const chat = Deno.env.get('TELEGRAM_CHAT_ID');
+//
+//         console.log('STEP 9: Telegram config:', {
+//             botConfigured: Boolean(bot),
+//             chatConfigured: Boolean(chat),
+//         });
+//
+//         if (!bot || !chat) {
+//             throw new Error(
+//                 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured'
+//             );
+//         }
+//
+//         console.log('STEP 10: before Telegram request');
+//
+//         const { data: fullOrder, error: fetchError } = await supabase
+//             .from('orders')
+//             .select('*')
+//             .eq('id', order.id)
+//             .single();
+//
+//         console.log('STEP 11: full order fetched');
+//
+//         if (fetchError) {
+//             throw fetchError;
+//         }
+//
+//         const items = (fullOrder.items || [])
+//             .map((item: any) => {
+//                 const quantity = Number(item.quantity || 1);
+//                 const price = Number(item.price || 0);
+//
+//                 const sizeLine = item.selectedSize
+//                     ? `\n  📏 Розмір: ${item.selectedSize}`
+//                     : '';
+//
+//                 return (
+//                     `• ${item.name}` +
+//                     sizeLine +
+//                     `\n  🔢 Кількість: ${quantity} шт.` +
+//                     `\n  💶 Ціна: €${price.toFixed(2)}`
+//                 );
+//             })
+//             .join('\n\n');;
+//
+//         const text =
+//             `🍫 MoldLab — НОВЕ ЗАМОВЛЕННЯ\n\n` +
+//             `#${String(fullOrder.id).slice(0, 8)}\n` +
+//             `👤 Клієнт: ${fullOrder.customer_name}\n` +
+//             `📧 Email: ${fullOrder.email}\n` +
+//             `📞 Телефон: ${fullOrder.phone}\n\n` +
+//             `📦 Товари:\n${items}\n\n` +
+//             `💰 Разом: €${fullOrder.total}` +
+//             (fullOrder.comment
+//                 ? `\n\n💬 Коментар: ${fullOrder.comment}`
+//                 : '');
+//
+//         console.log('STEP 12: message prepared');
+//
+//         const telegramResponse = await fetch(
+//             `https://api.telegram.org/bot${bot}/sendMessage`,
+//             {
+//                 method: 'POST',
+//                 headers: {
+//                     'content-type': 'application/json',
+//                 },
+//                 body: JSON.stringify({
+//                     chat_id: chat,
+//                     text,
+//                 }),
+//             }
+//         );
+//
+//         const telegramResult = await telegramResponse.text();
+//
+//         console.log('STEP 13: Telegram response:', telegramResult);
+//
+//         if (!telegramResponse.ok) {
+//             throw new Error(`Telegram error: ${telegramResult}`);
+//         }
+//
+//         console.log('STEP 14: SUCCESS');
+//
+//         return new Response(
+//             JSON.stringify({
+//                 ok: true,
+//                 order_id: order.id,
+//             }),
+//             {
+//                 status: 200,
+//                 headers: {
+//                     ...cors,
+//                     'content-type': 'application/json',
+//                 },
+//             }
+//         );
+//     } catch (error) {
+//         console.error('CREATE ORDER ERROR:', error);
+//
+//         return new Response(
+//             JSON.stringify({
+//                 ok: false,
+//                 error: error instanceof Error ? error.message : String(error),
+//             }),
+//             {
+//                 status: 500,
+//                 headers: {
+//                     ...cors,
+//                     'content-type': 'application/json',
+//                 },
+//             }
+//         );
+//     }
+// });
 
 
 
@@ -405,3 +405,256 @@ Deno.serve(async (req) => {
 //         );
 //     }
 // });
+
+
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const cors = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers':
+        'authorization, x-client-info, apikey, content-type',
+};
+
+Deno.serve(async (req) => {
+    console.log('STEP 1: function started');
+
+    if (req.method === 'OPTIONS') {
+        console.log('STEP OPTIONS');
+        return new Response('ok', { headers: cors });
+    }
+
+    try {
+        console.log('STEP 2: before req.json()');
+
+        const payload = await req.json();
+
+        console.log('STEP 3: payload received');
+
+        console.log('PAYLOAD:', {
+            customer_name: payload.customer_name,
+            email: payload.email,
+            phone: payload.phone,
+            total: payload.total,
+            items_count: payload.items?.length,
+        });
+
+        console.log('STEP 4: before createClient');
+
+        const supabase = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+
+        console.log('STEP 5: supabase client created');
+
+        /*
+         * ==========================================
+         * CHECK + DECREASE STOCK
+         * ==========================================
+         */
+
+        console.log('STEP 6: before stock update');
+
+        const { error: stockError } = await supabase.rpc(
+            'decrease_product_stock',
+            {
+                p_items: payload.items,
+            }
+        );
+
+        console.log('STEP 7: stock update finished');
+
+        if (stockError) {
+            console.error('STOCK ERROR:', stockError);
+
+            throw new Error(
+                stockError.message || 'Not enough stock'
+            );
+        }
+
+        console.log('STEP 8: stock successfully updated');
+
+        /*
+         * ==========================================
+         * CREATE ORDER
+         * ==========================================
+         */
+
+        console.log('STEP 9: before INSERT');
+
+        const { data: order, error: orderError } = await supabase
+            .from('orders')
+            .insert({
+                customer_name: payload.customer_name,
+                email: payload.email,
+                phone: payload.phone,
+                comment: payload.comment || null,
+                items: payload.items,
+                total: payload.total,
+                status: 'new',
+            })
+            .select('id')
+            .single();
+
+        console.log('STEP 10: INSERT finished');
+
+        console.log('ORDER:', order);
+        console.log('ORDER ERROR:', orderError);
+
+        if (orderError) {
+            throw orderError;
+        }
+
+        /*
+         * ==========================================
+         * TELEGRAM CONFIG
+         * ==========================================
+         */
+
+        console.log('STEP 11: before Telegram config');
+
+        const bot = Deno.env.get('TELEGRAM_BOT_TOKEN');
+        const chat = Deno.env.get('TELEGRAM_CHAT_ID');
+
+        console.log('STEP 12: Telegram config:', {
+            botConfigured: Boolean(bot),
+            chatConfigured: Boolean(chat),
+        });
+
+        if (!bot || !chat) {
+            throw new Error(
+                'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured'
+            );
+        }
+
+        /*
+         * ==========================================
+         * GET FULL ORDER
+         * ==========================================
+         */
+
+        console.log('STEP 13: before Telegram request');
+
+        const { data: fullOrder, error: fetchError } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('id', order.id)
+            .single();
+
+        console.log('STEP 14: full order fetched');
+
+        if (fetchError) {
+            throw fetchError;
+        }
+
+        /*
+         * ==========================================
+         * PREPARE TELEGRAM MESSAGE
+         * ==========================================
+         */
+
+        const items = (fullOrder.items || [])
+            .map((item: any) => {
+                const quantity = Number(item.quantity || 1);
+                const price = Number(item.price || 0);
+
+                const sizeLine = item.selectedSize
+                    ? `\n  📏 Розмір: ${item.selectedSize}`
+                    : '';
+
+                return (
+                    `• ${item.name}` +
+                    sizeLine +
+                    `\n  🔢 Кількість: ${quantity} шт.` +
+                    `\n  💶 Ціна: €${price.toFixed(2)}`
+                );
+            })
+            .join('\n\n');
+
+        const text =
+            `🍫 MoldLab — НОВЕ ЗАМОВЛЕННЯ\n\n` +
+            `#${String(fullOrder.id).slice(0, 8)}\n` +
+            `👤 Клієнт: ${fullOrder.customer_name}\n` +
+            `📧 Email: ${fullOrder.email}\n` +
+            `📞 Телефон: ${fullOrder.phone}\n\n` +
+            `📦 Товари:\n${items}\n\n` +
+            `💰 Разом: €${fullOrder.total}` +
+            (fullOrder.comment
+                ? `\n\n💬 Коментар: ${fullOrder.comment}`
+                : '');
+
+        console.log('STEP 15: message prepared');
+
+        /*
+         * ==========================================
+         * SEND TELEGRAM
+         * ==========================================
+         */
+
+        const telegramResponse = await fetch(
+            `https://api.telegram.org/bot${bot}/sendMessage`,
+            {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: chat,
+                    text,
+                }),
+            }
+        );
+
+        const telegramResult = await telegramResponse.text();
+
+        console.log(
+            'STEP 16: Telegram response:',
+            telegramResult
+        );
+
+        if (!telegramResponse.ok) {
+            throw new Error(
+                `Telegram error: ${telegramResult}`
+            );
+        }
+
+        console.log('STEP 17: SUCCESS');
+
+        return new Response(
+            JSON.stringify({
+                ok: true,
+                order_id: order.id,
+            }),
+            {
+                status: 200,
+                headers: {
+                    ...cors,
+                    'content-type': 'application/json',
+                },
+            }
+        );
+    } catch (error) {
+        console.error(
+            'CREATE ORDER ERROR:',
+            error
+        );
+
+        return new Response(
+            JSON.stringify({
+                ok: false,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : String(error),
+            }),
+            {
+                status: 500,
+                headers: {
+                    ...cors,
+                    'content-type': 'application/json',
+                },
+            }
+        );
+    }
+});
