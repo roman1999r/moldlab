@@ -348,6 +348,11 @@ const MENU_ITEMS = [
         icon: Pencil,
     },
     {
+        id: 'addresses',
+        label: 'Адреси доставки',
+        icon: MapPin,
+    },
+    {
         id: 'wishlist',
         label: 'Обране',
         icon: Heart,
@@ -377,6 +382,64 @@ export default function Account({ onAdd }) {
 
     const [saving, setSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
+    const [shippingAddresses, setShippingAddresses] = useState([]);
+    const [addressesLoading, setAddressesLoading] = useState(false);
+    const [addressSaving, setAddressSaving] = useState(false);
+    const [addressMessage, setAddressMessage] = useState('');
+
+    const [editingAddressId, setEditingAddressId] = useState(null);
+
+    const [addressForm, setAddressForm] = useState({
+        label: 'Дім',
+        first_name: '',
+        last_name: '',
+        phone: '',
+        country: 'PL',
+        city: '',
+        address: '',
+        apartment: '',
+        postal_code: '',
+        delivery_method: 'inpost_paczkomat',
+        pickup_point: '',
+        is_default: false,
+    });
+
+    useEffect(() => {
+        if (!user) {
+            setShippingAddresses([]);
+            return;
+        }
+
+        async function loadShippingAddresses() {
+            setAddressesLoading(true);
+
+            const { data, error } = await supabase
+                .from('shipping_addresses')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('is_default', {
+                    ascending: false,
+                })
+                .order('created_at', {
+                    ascending: false,
+                });
+
+            if (error) {
+                console.error(
+                    'Shipping addresses loading error:',
+                    error
+                );
+
+                setShippingAddresses([]);
+            } else {
+                setShippingAddresses(data || []);
+            }
+
+            setAddressesLoading(false);
+        }
+
+        loadShippingAddresses();
+    }, [user]);
 
     const [form, setForm] = useState({
         full_name: '',
@@ -436,6 +499,321 @@ export default function Account({ onAdd }) {
     if (!user) {
         return <Navigate to="/auth" replace />;
     }
+
+    function updateAddressField(field, value) {
+        setAddressForm((current) => ({
+            ...current,
+            [field]: value,
+        }));
+    }
+
+
+    function resetAddressForm() {
+        setEditingAddressId(null);
+
+        setAddressForm({
+            label: 'Дім',
+            first_name: profile?.full_name || '',
+            last_name: '',
+            phone: profile?.phone || '',
+            country: profile?.country || 'PL',
+            city: profile?.city || '',
+            address: profile?.address || '',
+            apartment: '',
+            postal_code: profile?.postal_code || '',
+            delivery_method: 'inpost_paczkomat',
+            pickup_point: '',
+            is_default: shippingAddresses.length === 0,
+        });
+
+        setAddressMessage('');
+    }
+
+
+    function editShippingAddress(address) {
+        setEditingAddressId(address.id);
+
+        setAddressForm({
+            label: address.label || 'Адреса',
+            first_name: address.first_name || '',
+            last_name: address.last_name || '',
+            phone: address.phone || '',
+            country: address.country || 'PL',
+            city: address.city || '',
+            address: address.address || '',
+            apartment: address.apartment || '',
+            postal_code: address.postal_code || '',
+            delivery_method:
+                address.delivery_method ||
+                'inpost_paczkomat',
+            pickup_point:
+                address.pickup_point || '',
+            is_default:
+                Boolean(address.is_default),
+        });
+
+        setAddressMessage('');
+    }
+
+
+    async function saveShippingAddress(e) {
+        e.preventDefault();
+
+        if (!user) return;
+
+        setAddressSaving(true);
+        setAddressMessage('');
+
+        if (!addressForm.first_name.trim()) {
+            setAddressMessage('Введіть імʼя.');
+            setAddressSaving(false);
+            return;
+        }
+
+        if (!addressForm.last_name.trim()) {
+            setAddressMessage('Введіть прізвище.');
+            setAddressSaving(false);
+            return;
+        }
+
+        if (!addressForm.phone.trim()) {
+            setAddressMessage('Введіть телефон.');
+            setAddressSaving(false);
+            return;
+        }
+
+        if (!addressForm.country) {
+            setAddressMessage('Виберіть країну.');
+            setAddressSaving(false);
+            return;
+        }
+
+        if (!addressForm.city.trim()) {
+            setAddressMessage('Введіть місто.');
+            setAddressSaving(false);
+            return;
+        }
+
+        if (
+            addressForm.delivery_method !== 'inpost_paczkomat' &&
+            !addressForm.address.trim()
+        ) {
+            setAddressMessage('Введіть адресу.');
+            setAddressSaving(false);
+            return;
+        }
+
+        try {
+            /*
+             * Якщо адреса має стати основною,
+             * спочатку прибираємо default з інших.
+             */
+
+            if (addressForm.is_default) {
+                const { error: defaultError } =
+                    await supabase
+                        .from('shipping_addresses')
+                        .update({
+                            is_default: false,
+                        })
+                        .eq('user_id', user.id);
+
+                if (defaultError) {
+                    throw defaultError;
+                }
+            }
+
+            const payload = {
+                user_id: user.id,
+
+                label:
+                    addressForm.label.trim() ||
+                    'Адреса',
+
+                first_name:
+                    addressForm.first_name.trim(),
+
+                last_name:
+                    addressForm.last_name.trim(),
+
+                phone:
+                    addressForm.phone.trim(),
+
+                country:
+                addressForm.country,
+
+                city:
+                    addressForm.city.trim(),
+
+                address:
+                    addressForm.address.trim(),
+
+                apartment:
+                    addressForm.apartment.trim(),
+
+                postal_code:
+                    addressForm.postal_code.trim(),
+
+                delivery_method:
+                addressForm.delivery_method,
+
+                pickup_point:
+                    addressForm.pickup_point.trim(),
+
+                is_default:
+                addressForm.is_default,
+
+                updated_at:
+                    new Date().toISOString(),
+            };
+
+            let result;
+
+            if (editingAddressId) {
+                result = await supabase
+                    .from('shipping_addresses')
+                    .update(payload)
+                    .eq('id', editingAddressId)
+                    .eq('user_id', user.id);
+            } else {
+                result = await supabase
+                    .from('shipping_addresses')
+                    .insert(payload);
+            }
+
+            if (result.error) {
+                throw result.error;
+            }
+
+            const { data, error } = await supabase
+                .from('shipping_addresses')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('is_default', {
+                    ascending: false,
+                })
+                .order('created_at', {
+                    ascending: false,
+                });
+
+            if (error) {
+                throw error;
+            }
+
+            setShippingAddresses(data || []);
+
+            setAddressMessage(
+                editingAddressId
+                    ? 'Адресу оновлено.'
+                    : 'Адресу збережено.'
+            );
+
+            resetAddressForm();
+
+        } catch (error) {
+            console.error(
+                'Shipping address save error:',
+                error
+            );
+
+            setAddressMessage(
+                'Не вдалося зберегти адресу.'
+            );
+        } finally {
+            setAddressSaving(false);
+        }
+    }
+
+
+    async function deleteShippingAddress(addressId) {
+        if (!user) return;
+
+        const confirmed = window.confirm(
+            'Видалити цю адресу доставки?'
+        );
+
+        if (!confirmed) return;
+
+        const { error } = await supabase
+            .from('shipping_addresses')
+            .delete()
+            .eq('id', addressId)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error(
+                'Shipping address delete error:',
+                error
+            );
+
+            setAddressMessage(
+                'Не вдалося видалити адресу.'
+            );
+
+            return;
+        }
+
+        setShippingAddresses((current) =>
+            current.filter(
+                address => address.id !== addressId
+            )
+        );
+
+        if (editingAddressId === addressId) {
+            resetAddressForm();
+        }
+    }
+
+
+    async function setDefaultShippingAddress(addressId) {
+        if (!user) return;
+
+        const { error: resetError } =
+            await supabase
+                .from('shipping_addresses')
+                .update({
+                    is_default: false,
+                })
+                .eq('user_id', user.id);
+
+        if (resetError) {
+            console.error(
+                'Default address reset error:',
+                resetError
+            );
+
+            return;
+        }
+
+        const { error } = await supabase
+            .from('shipping_addresses')
+            .update({
+                is_default: true,
+                updated_at:
+                    new Date().toISOString(),
+            })
+            .eq('id', addressId)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error(
+                'Default address error:',
+                error
+            );
+
+            return;
+        }
+
+        setShippingAddresses((current) =>
+            current.map(address => ({
+                ...address,
+                is_default:
+                    address.id === addressId,
+            }))
+        );
+    }
+
+
 
     function updateField(field, value) {
         setForm((current) => ({
@@ -1062,6 +1440,642 @@ export default function Account({ onAdd }) {
                                     </button>
 
                                 </form>
+
+                            </div>
+                        )}
+
+                        {/* ================= SHIPPING ADDRESSES ================= */}
+
+                        {activeSection === 'addresses' && (
+                            <div className="account-section">
+
+                                <div className="account-section-header">
+
+                                    <div>
+                                        <div className="eyebrow">
+                                            ACCOUNT
+                                        </div>
+
+                                        <h1>
+                                            Адреси доставки
+                                        </h1>
+
+                                        <p className="muted">
+                                            Збережені адреси для швидкого оформлення замовлення
+                                        </p>
+                                    </div>
+
+                                </div>
+
+
+                                {/* SAVED ADDRESSES */}
+
+                                {addressesLoading ? (
+
+                                    <div className="account-empty">
+                                        Завантаження адрес...
+                                    </div>
+
+                                ) : shippingAddresses.length > 0 ? (
+
+                                    <div className="shipping-addresses-list">
+
+                                        {shippingAddresses.map((address) => (
+
+                                            <article
+                                                className={`shipping-address-card ${
+                                                    address.is_default
+                                                        ? 'is-default'
+                                                        : ''
+                                                }`}
+                                                key={address.id}
+                                            >
+
+                                                <div className="shipping-address-card-header">
+
+                                                    <div>
+
+                                                        <strong>
+                                                            {address.label}
+                                                        </strong>
+
+                                                        {address.is_default && (
+                                                            <span className="shipping-address-default">
+                                        Основна
+                                    </span>
+                                                        )}
+
+                                                    </div>
+
+                                                    <div className="shipping-address-actions">
+
+                                                        {!address.is_default && (
+                                                            <button
+                                                                type="button"
+                                                                className="button secondary"
+                                                                onClick={() =>
+                                                                    setDefaultShippingAddress(
+                                                                        address.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                Зробити основною
+                                                            </button>
+                                                        )}
+
+                                                        <button
+                                                            type="button"
+                                                            className="button secondary"
+                                                            onClick={() =>
+                                                                editShippingAddress(
+                                                                    address
+                                                                )
+                                                            }
+                                                        >
+                                                            <Pencil size={15} />
+                                                            Редагувати
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="button secondary"
+                                                            onClick={() =>
+                                                                deleteShippingAddress(
+                                                                    address.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 size={15} />
+                                                        </button>
+
+                                                    </div>
+
+                                                </div>
+
+
+                                                <div className="shipping-address-content">
+
+                                                    <div>
+                                                        <strong>
+                                                            {address.first_name}{' '}
+                                                            {address.last_name}
+                                                        </strong>
+                                                    </div>
+
+                                                    {address.phone && (
+                                                        <div className="profile-info-row">
+                                                            <Phone size={15} />
+
+                                                            <span>
+                                        {address.phone}
+                                    </span>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="profile-info-row">
+                                                        <MapPin size={15} />
+
+                                                        <span>
+                                    {[
+                                        address.address,
+                                        address.apartment,
+                                        address.city,
+                                        address.postal_code,
+                                    ]
+                                        .filter(Boolean)
+                                        .join(', ')}
+                                </span>
+                                                    </div>
+
+                                                    <div className="shipping-address-country">
+                                                        {address.country}
+                                                    </div>
+
+                                                    {address.pickup_point && (
+                                                        <div className="shipping-address-pickup">
+                                                            Пункт: {address.pickup_point}
+                                                        </div>
+                                                    )}
+
+                                                </div>
+
+                                            </article>
+
+                                        ))}
+
+                                    </div>
+
+                                ) : (
+
+                                    <div className="account-empty">
+
+                                        <MapPin size={42} />
+
+                                        <h3>
+                                            Збережених адрес немає
+                                        </h3>
+
+                                        <p className="muted">
+                                            Додайте адресу, щоб швидше оформляти замовлення.
+                                        </p>
+
+                                    </div>
+
+                                )}
+
+
+                                {/* ADD / EDIT ADDRESS */}
+
+                                <div className="shipping-address-form-card">
+
+                                    <div className="account-section-header">
+
+                                        <div>
+
+                                            <h2>
+                                                {editingAddressId
+                                                    ? 'Редагувати адресу'
+                                                    : 'Додати адресу'}
+                                            </h2>
+
+                                            <p className="muted">
+                                                Ці дані будуть доступні під час оформлення замовлення.
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <form
+                                        className="profile-form"
+                                        onSubmit={saveShippingAddress}
+                                    >
+
+                                        <div className="form-grid">
+
+                                            <label>
+
+                        <span>
+                            Назва адреси
+                        </span>
+
+                                                <input
+                                                    type="text"
+                                                    value={addressForm.label}
+                                                    onChange={(e) =>
+                                                        updateAddressField(
+                                                            'label',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Дім"
+                                                    disabled={addressSaving}
+                                                />
+
+                                            </label>
+
+
+                                            <label>
+
+                        <span>
+                            Імʼя
+                        </span>
+
+                                                <input
+                                                    type="text"
+                                                    value={addressForm.first_name}
+                                                    onChange={(e) =>
+                                                        updateAddressField(
+                                                            'first_name',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Імʼя"
+                                                    required
+                                                    disabled={addressSaving}
+                                                />
+
+                                            </label>
+
+
+                                            <label>
+
+                        <span>
+                            Прізвище
+                        </span>
+
+                                                <input
+                                                    type="text"
+                                                    value={addressForm.last_name}
+                                                    onChange={(e) =>
+                                                        updateAddressField(
+                                                            'last_name',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Прізвище"
+                                                    required
+                                                    disabled={addressSaving}
+                                                />
+
+                                            </label>
+
+
+                                            <label>
+
+                        <span>
+                            Телефон
+                        </span>
+
+                                                <input
+                                                    type="tel"
+                                                    value={addressForm.phone}
+                                                    onChange={(e) =>
+                                                        updateAddressField(
+                                                            'phone',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="+34..."
+                                                    required
+                                                    disabled={addressSaving}
+                                                />
+
+                                            </label>
+
+
+                                            <label>
+
+                        <span>
+                            Країна
+                        </span>
+
+                                                <select
+                                                    value={addressForm.country}
+                                                    onChange={(e) => {
+                                                        updateAddressField(
+                                                            'country',
+                                                            e.target.value
+                                                        );
+
+                                                        if (
+                                                            e.target.value !== 'PL'
+                                                        ) {
+                                                            updateAddressField(
+                                                                'delivery_method',
+                                                                'courier'
+                                                            );
+                                                        }
+                                                    }}
+                                                    disabled={addressSaving}
+                                                >
+                                                    <option value="PL">
+                                                        Polska
+                                                    </option>
+
+                                                    <option value="DE">
+                                                        Deutschland
+                                                    </option>
+
+                                                    <option value="FR">
+                                                        France
+                                                    </option>
+
+                                                    <option value="ES">
+                                                        España
+                                                    </option>
+
+                                                    <option value="IT">
+                                                        Italia
+                                                    </option>
+
+                                                    <option value="NL">
+                                                        Nederland
+                                                    </option>
+
+                                                    <option value="BE">
+                                                        Belgium
+                                                    </option>
+
+                                                    <option value="AT">
+                                                        Österreich
+                                                    </option>
+
+                                                    <option value="CZ">
+                                                        Česko
+                                                    </option>
+
+                                                    <option value="SK">
+                                                        Slovensko
+                                                    </option>
+
+                                                    <option value="HU">
+                                                        Magyarország
+                                                    </option>
+
+                                                    <option value="RO">
+                                                        România
+                                                    </option>
+
+                                                    <option value="UA">
+                                                        Україна
+                                                    </option>
+
+                                                    <option value="GB">
+                                                        United Kingdom
+                                                    </option>
+
+                                                    <option value="US">
+                                                        United States
+                                                    </option>
+
+                                                    <option value="CA">
+                                                        Canada
+                                                    </option>
+
+                                                    <option value="AU">
+                                                        Australia
+                                                    </option>
+
+                                                </select>
+
+                                            </label>
+
+
+                                            <label>
+
+                        <span>
+                            Місто
+                        </span>
+
+                                                <input
+                                                    type="text"
+                                                    value={addressForm.city}
+                                                    onChange={(e) =>
+                                                        updateAddressField(
+                                                            'city',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Місто"
+                                                    required
+                                                    disabled={addressSaving}
+                                                />
+
+                                            </label>
+
+
+                                            <label>
+
+                        <span>
+                            Поштовий індекс
+                        </span>
+
+                                                <input
+                                                    type="text"
+                                                    value={addressForm.postal_code}
+                                                    onChange={(e) =>
+                                                        updateAddressField(
+                                                            'postal_code',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="50000"
+                                                    disabled={addressSaving}
+                                                />
+
+                                            </label>
+
+
+                                            <label>
+
+                        <span>
+                            Спосіб доставки
+                        </span>
+
+                                                <select
+                                                    value={addressForm.delivery_method}
+                                                    onChange={(e) =>
+                                                        updateAddressField(
+                                                            'delivery_method',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    disabled={addressSaving}
+                                                >
+
+                                                    {addressForm.country === 'PL' ? (
+                                                        <>
+                                                            <option value="inpost_paczkomat">
+                                                                InPost Paczkomat
+                                                            </option>
+
+                                                            <option value="inpost_courier">
+                                                                InPost Kurier
+                                                            </option>
+
+                                                            <option value="dpd_courier">
+                                                                DPD Kurier
+                                                            </option>
+
+                                                            <option value="dhl_courier">
+                                                                DHL Kurier
+                                                            </option>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <option value="courier">
+                                                                Курʼєр
+                                                            </option>
+
+                                                            <option value="pickup_point">
+                                                                Пункт видачі
+                                                            </option>
+                                                        </>
+                                                    )}
+
+                                                </select>
+
+                                            </label>
+
+                                        </div>
+
+
+                                        <label className="form-field-full">
+
+                    <span>
+                        Вулиця та номер будинку
+                    </span>
+
+                                            <input
+                                                type="text"
+                                                value={addressForm.address}
+                                                onChange={(e) =>
+                                                    updateAddressField(
+                                                        'address',
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Calle Mayor 10"
+                                                disabled={addressSaving}
+                                            />
+
+                                        </label>
+
+
+                                        <label className="form-field-full">
+
+                    <span>
+                        Квартира / локал
+                    </span>
+
+                                            <input
+                                                type="text"
+                                                value={addressForm.apartment}
+                                                onChange={(e) =>
+                                                    updateAddressField(
+                                                        'apartment',
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Квартира 5"
+                                                disabled={addressSaving}
+                                            />
+
+                                        </label>
+
+
+                                        {(
+                                            addressForm.delivery_method ===
+                                            'inpost_paczkomat' ||
+                                            addressForm.delivery_method ===
+                                            'pickup_point'
+                                        ) && (
+
+                                            <label className="form-field-full">
+
+                        <span>
+                            Пункт / Paczkomat
+                        </span>
+
+                                                <input
+                                                    type="text"
+                                                    value={addressForm.pickup_point}
+                                                    onChange={(e) =>
+                                                        updateAddressField(
+                                                            'pickup_point',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Наприклад WAW147H"
+                                                    disabled={addressSaving}
+                                                />
+
+                                            </label>
+
+                                        )}
+
+
+                                        <label className="shipping-address-default-checkbox">
+
+                                            <input
+                                                type="checkbox"
+                                                checked={addressForm.is_default}
+                                                onChange={(e) =>
+                                                    updateAddressField(
+                                                        'is_default',
+                                                        e.target.checked
+                                                    )
+                                                }
+                                                disabled={addressSaving}
+                                            />
+
+                                            <span>
+                        Використовувати як основну адресу
+                    </span>
+
+                                        </label>
+
+
+                                        {addressMessage && (
+                                            <div className="profile-save-message">
+                                                {addressMessage}
+                                            </div>
+                                        )}
+
+
+                                        <div className="shipping-address-form-actions">
+
+                                            <button
+                                                type="submit"
+                                                className="button primary"
+                                                disabled={addressSaving}
+                                            >
+                                                {addressSaving
+                                                    ? 'Збереження...'
+                                                    : editingAddressId
+                                                        ? 'Зберегти адресу'
+                                                        : 'Додати адресу'}
+                                            </button>
+
+
+                                            {editingAddressId && (
+                                                <button
+                                                    type="button"
+                                                    className="button secondary"
+                                                    onClick={resetAddressForm}
+                                                    disabled={addressSaving}
+                                                >
+                                                    Скасувати
+                                                </button>
+                                            )}
+
+                                        </div>
+
+                                    </form>
+
+                                </div>
 
                             </div>
                         )}
