@@ -1072,26 +1072,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useMemo, useState } from 'react';
 import {
     X,
@@ -1192,27 +1172,217 @@ export default function Cart({
         try {
             const form = e.currentTarget;
 
+            /*
+             * -----------------------------------------
+             * FORM DATA
+             * -----------------------------------------
+             */
+
+            const firstName =
+                form.first_name.value.trim();
+
+            const lastName =
+                form.last_name.value.trim();
+
+            const email =
+                form.email.value.trim();
+
+            const phone =
+                form.phone.value.trim();
+
+            const shippingMethod =
+                form.shipping_method.value;
+
+            const shippingCountry =
+                form.shipping_country.value;
+
+            const shippingAddress =
+                form.shipping_address.value.trim();
+
+            const shippingApartment =
+                form.shipping_apartment.value.trim();
+
+            const shippingCity =
+                form.shipping_city.value.trim();
+
+            const shippingPostalCode =
+                form.shipping_postal_code.value.trim();
+
+            const pickupPoint =
+                form.pickup_point.value.trim();
+
+            const paymentMethod =
+                form.payment_method.value;
+
+            const comment =
+                form.comment.value.trim();
+
+            /*
+             * -----------------------------------------
+             * VALIDATION
+             * -----------------------------------------
+             */
+
+            if (!firstName) {
+                setMessage('Введіть імʼя.');
+                setLoading(false);
+                return;
+            }
+
+            if (!lastName) {
+                setMessage('Введіть прізвище.');
+                setLoading(false);
+                return;
+            }
+
+            if (!email) {
+                setMessage('Введіть email.');
+                setLoading(false);
+                return;
+            }
+
+            if (!phone) {
+                setMessage('Введіть номер телефону.');
+                setLoading(false);
+                return;
+            }
+
+            if (!shippingMethod) {
+                setMessage(
+                    'Виберіть спосіб доставки.'
+                );
+                setLoading(false);
+                return;
+            }
+
+            /*
+             * Для кур'єрської доставки
+             * адреса обов'язкова
+             */
+
+            const courierMethods = [
+                'inpost_courier',
+                'dpd_courier',
+                'dhl_courier',
+                'gls_courier'
+            ];
+
+            if (
+                courierMethods.includes(shippingMethod)
+            ) {
+                if (
+                    !shippingAddress ||
+                    !shippingCity ||
+                    !shippingPostalCode
+                ) {
+                    setMessage(
+                        'Вкажіть адресу, місто та поштовий індекс.'
+                    );
+
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            /*
+             * Для Paczkomat поки вимагаємо
+             * номер пункту вручну.
+             *
+             * Пізніше підключимо реальний
+             * InPost selector.
+             */
+
+            if (
+                shippingMethod === 'inpost_paczkomat' &&
+                !pickupPoint
+            ) {
+                setMessage(
+                    'Вкажіть Paczkomat.'
+                );
+
+                setLoading(false);
+                return;
+            }
+
+            if (!paymentMethod) {
+                setMessage(
+                    'Виберіть спосіб оплати.'
+                );
+
+                setLoading(false);
+                return;
+            }
+
+            /*
+             * -----------------------------------------
+             * CUSTOMER NAME
+             * -----------------------------------------
+             *
+             * Залишаємо customer_name для
+             * сумісності з поточною таблицею orders.
+             */
+
+            const customerName =
+                `${firstName} ${lastName}`.trim();
+
+            /*
+             * -----------------------------------------
+             * PAYLOAD
+             * -----------------------------------------
+             */
+
             const payload = {
-                customer_name:
-                    form.customer_name.value.trim(),
+                customer_name: customerName,
 
-                email:
-                    form.email.value.trim(),
+                first_name: firstName,
 
-                phone:
-                    form.phone.value.trim(),
+                last_name: lastName,
 
-                comment:
-                    form.comment.value.trim(),
+                email,
+
+                phone,
+
+                shipping_method: shippingMethod,
+
+                shipping_country:
+                    shippingCountry || 'Poland',
+
+                shipping_address:
+                    shippingAddress || null,
+
+                shipping_apartment:
+                    shippingApartment || null,
+
+                shipping_city:
+                    shippingCity || null,
+
+                shipping_postal_code:
+                    shippingPostalCode || null,
+
+                pickup_point:
+                    pickupPoint || null,
+
+                payment_method:
+                paymentMethod,
+
+                comment,
 
                 items: cart.map(item => ({
                     id: item.id,
-                    name: item.name,
-                    price: Number(item.price || 0),
-                    quantity: Number(item.quantity || 1),
 
-                    // ВАЖЛИВО:
-                    // передаємо вибраний розмір
+                    name: item.name,
+
+                    price:
+                        Number(item.price || 0),
+
+                    quantity:
+                        Number(item.quantity || 1),
+
+                    /*
+                     * ВАЖЛИВО:
+                     * передаємо конкретний розмір
+                     */
+
                     selectedSize:
                         item.selectedSize || null
                 })),
@@ -1223,9 +1393,22 @@ export default function Cart({
             };
 
             console.log(
-                'ORDER PAYLOAD:',
-                JSON.stringify(payload, null, 2)
+                '========== ORDER PAYLOAD =========='
             );
+
+            console.log(
+                JSON.stringify(
+                    payload,
+                    null,
+                    2
+                )
+            );
+
+            /*
+             * -----------------------------------------
+             * CREATE ORDER
+             * -----------------------------------------
+             */
 
             const {
                 data,
@@ -1259,7 +1442,9 @@ export default function Cart({
             }
 
             /*
-             * Замовлення створено
+             * -----------------------------------------
+             * SUCCESS
+             * -----------------------------------------
              */
 
             clearCart();
@@ -1282,6 +1467,7 @@ export default function Cart({
                 t.cart?.error ||
                 'Помилка оформлення замовлення.'
             );
+
         } finally {
             setLoading(false);
         }
@@ -1465,8 +1651,6 @@ export default function Cart({
                                         key={itemKey}
                                     >
 
-                                        {/* IMAGE */}
-
                                         <div className="cart-product-image">
 
                                             {item.image_url ||
@@ -1487,8 +1671,6 @@ export default function Cart({
                                             )}
 
                                         </div>
-
-                                        {/* INFO */}
 
                                         <div className="cart-product-info">
 
@@ -1522,8 +1704,6 @@ export default function Cart({
                                                     item.price || 0
                                                 ).toFixed(2)}
                                             </span>
-
-                                            {/* QUANTITY */}
 
                                             <div className="cart-quantity">
 
@@ -1578,8 +1758,6 @@ export default function Cart({
                                             )}
 
                                         </div>
-
-                                        {/* RIGHT */}
 
                                         <div className="cart-product-right">
 
@@ -1707,13 +1885,15 @@ export default function Cart({
                         <div className="checkout-modal-header">
 
                             <div>
+
                                 <span className="eyebrow">
                                     Оформлення
                                 </span>
 
                                 <h2>
-                                    Оформити замовлення
+                                    Дані про відправку
                                 </h2>
+
                             </div>
 
                             <button
@@ -1802,31 +1982,216 @@ export default function Cart({
                             onSubmit={submitOrder}
                         >
 
-                            <input
-                                name="customer_name"
-                                required
-                                placeholder="Ваше ім'я"
-                                disabled={loading}
-                            />
+                            {/* =========================
+                                CUSTOMER
+                            ========================== */}
+
+                            <div className="checkout-section-title">
+                                Dane odbiorcy
+                            </div>
+
+                            <div className="checkout-form-row">
+
+                                <input
+                                    name="first_name"
+                                    required
+                                    placeholder="Imię *"
+                                    disabled={loading}
+                                />
+
+                                <input
+                                    name="last_name"
+                                    required
+                                    placeholder="Nazwisko *"
+                                    disabled={loading}
+                                />
+
+                            </div>
 
                             <input
                                 name="email"
                                 required
                                 type="email"
-                                placeholder="Email"
+                                placeholder="E-mail *"
                                 disabled={loading}
                             />
 
                             <input
                                 name="phone"
                                 required
-                                placeholder="Телефон"
+                                type="tel"
+                                placeholder="Telefon *"
                                 disabled={loading}
                             />
 
+                            {/* =========================
+                                SHIPPING
+                            ========================== */}
+
+                            <div className="checkout-section-title">
+                                Sposób dostawy
+                            </div>
+
+                            <select
+                                name="shipping_method"
+                                required
+                                disabled={loading}
+                                defaultValue=""
+                            >
+
+                                <option
+                                    value=""
+                                    disabled
+                                >
+                                    Wybierz sposób dostawy
+                                </option>
+
+                                <option value="inpost_paczkomat">
+                                    InPost Paczkomat®
+                                </option>
+
+                                <option value="inpost_courier">
+                                    InPost Kurier
+                                </option>
+
+                                <option value="dpd_courier">
+                                    DPD Kurier
+                                </option>
+
+                                <option value="dhl_courier">
+                                    DHL Kurier
+                                </option>
+
+                                <option value="gls_courier">
+                                    GLS Kurier
+                                </option>
+
+                            </select>
+
+                            {/* =========================
+                                COUNTRY
+                            ========================== */}
+
+                            <select
+                                name="shipping_country"
+                                required
+                                disabled={loading}
+                                defaultValue="Poland"
+                            >
+
+                                <option value="Poland">
+                                    Polska
+                                </option>
+
+                            </select>
+
+                            {/* =========================
+                                ADDRESS
+                            ========================== */}
+
+                            <div className="checkout-section-title">
+                                Adres dostawy
+                            </div>
+
+                            <input
+                                name="shipping_address"
+                                placeholder="Ulica"
+                                disabled={loading}
+                            />
+
+                            <div className="checkout-form-row">
+
+                                <input
+                                    name="shipping_apartment"
+                                    placeholder="Numer domu / lokalu"
+                                    disabled={loading}
+                                />
+
+                                <input
+                                    name="shipping_postal_code"
+                                    placeholder="Kod pocztowy"
+                                    disabled={loading}
+                                />
+
+                            </div>
+
+                            <input
+                                name="shipping_city"
+                                placeholder="Miasto"
+                                disabled={loading}
+                            />
+
+                            {/* =========================
+                                PACZKOMAT
+                            ========================== */}
+
+                            <div className="checkout-pickup">
+
+                                <label>
+                                    Paczkomat / punkt odbioru
+                                </label>
+
+                                <input
+                                    name="pickup_point"
+                                    placeholder="Np. WAW147H"
+                                    disabled={loading}
+                                />
+
+                                <small>
+                                    Поки введіть код Paczkomat вручну.
+                                    Реальний вибір пункту InPost підключимо
+                                    наступним кроком.
+                                </small>
+
+                            </div>
+
+                            {/* =========================
+                                PAYMENT
+                            ========================== */}
+
+                            <div className="checkout-section-title">
+                                Metoda płatności
+                            </div>
+
+                            <select
+                                name="payment_method"
+                                required
+                                disabled={loading}
+                                defaultValue=""
+                            >
+
+                                <option
+                                    value=""
+                                    disabled
+                                >
+                                    Wybierz metodę płatności
+                                </option>
+
+                                <option value="card">
+                                    Karta płatnicza
+                                </option>
+
+                                <option value="blik">
+                                    BLIK
+                                </option>
+
+                                <option value="przelewy24">
+                                    Przelewy24
+                                </option>
+
+                                <option value="paypal">
+                                    PayPal
+                                </option>
+
+                            </select>
+
+                            {/* =========================
+                                COMMENT
+                            ========================== */}
+
                             <textarea
                                 name="comment"
-                                placeholder="Коментар до замовлення"
+                                placeholder="Komentarz do zamówienia (opcjonalnie)"
                                 disabled={loading}
                                 rows={4}
                             />
@@ -1836,6 +2201,10 @@ export default function Cart({
                                     {message}
                                 </div>
                             )}
+
+                            {/* =========================
+                                SUBMIT
+                            ========================== */}
 
                             <button
                                 type="submit"
@@ -1850,12 +2219,13 @@ export default function Cart({
                                             className="spin"
                                         />
 
-                                        Створення замовлення...
+                                        Tworzenie zamówienia...
                                     </>
                                 ) : (
                                     <>
-                                        Оформити замовлення
-                                        · €{total.toFixed(2)}
+                                        Zamawiam
+                                        {' · '}
+                                        €{total.toFixed(2)}
                                     </>
                                 )}
 
@@ -1867,7 +2237,7 @@ export default function Cart({
                                 onClick={closeCheckout}
                                 disabled={loading}
                             >
-                                Назад до корзини
+                                Wróć do koszyka
                             </button>
 
                         </form>
@@ -1879,3 +2249,10 @@ export default function Cart({
         </>
     );
 }
+
+
+
+
+
+
+
