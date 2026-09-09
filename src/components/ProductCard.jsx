@@ -457,12 +457,21 @@
 
 
 import {useEffect, useRef, useState} from 'react';
-import {Box, ShoppingBag,ArrowUpRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import {Box, ShoppingBag,ArrowUpRight,Heart } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import ProductModel from "./ProductModel.jsx";
 import {useLanguage} from "../context/LanguageContext.jsx";
+import { useWishlist } from '../hooks/useWishlist';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProductCard({ product, onAdd }) {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const {
+        isInWishlist,
+        toggleWishlist,
+    } = useWishlist();
     const [selectedSize, setSelectedSize] = useState(null);
     const {t} = useLanguage();
     // Розміри приходять із Supabase як product_sizes
@@ -473,7 +482,7 @@ export default function ProductCard({ product, onAdd }) {
     const hasSizes = sizes.length > 0;
     const [show3D, setShow3D] = useState(false);
     const modelContainerRef = useRef(null);
-
+    const [wishlistMessage, setWishlistMessage] = useState('');
     // Вибраний розмір
     const selectedSizeData = sizes.find(
         item => item.size === selectedSize
@@ -511,6 +520,28 @@ export default function ProductCard({ product, onAdd }) {
         };
     }, [show3D]);
 
+    async function handleWishlist() {
+        console.log('SELECTED SIZE:', selectedSize);
+        console.log('HAS SIZES:', hasSizes);
+
+        if (!user) {
+            navigate('/auth');
+            return;
+        }
+
+        if (hasSizes && !selectedSize) {
+            setWishlistMessage('Виберіть розмір');
+
+            setTimeout(() => {
+                setWishlistMessage('');
+            }, 2500);
+
+            return;
+        }
+
+        await toggleWishlist(product, selectedSize);
+    }
+
     function handleAdd() {
         // Якщо є розміри — спочатку треба вибрати розмір
         if (hasSizes && !selectedSize) {
@@ -530,38 +561,45 @@ export default function ProductCard({ product, onAdd }) {
 
 
         <article className="product-card">
+
             <div ref={modelContainerRef} className="product-image">
 
-                {show3D ? (
-                    <ProductModel
-                        src={product.model}
-                        poster={product.image}
-                    />
-                ) : (
-                    <img
-                        src={product.image}
-                        alt={product.name}
-                        className="product-image-photo"
-                    />
-                )}
+                    {show3D ? (
+                        <ProductModel
+                            src={product.model}
+                            poster={product.image}
+                        />
+                    ) : (
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="product-image-photo"
+                        />
+                    )}
 
-                <button
-                    type="button"
-                    className="three-d-badge"
-                    onClick={() => setShow3D(prev => !prev)}
-                    aria-label={show3D ? 'Show photo' : 'Show 3D model'}
-                >
-                    <Box size={14} />
-                    {show3D ? 'Фото' : '3D'}
-                </button>
+                    <div className={'button-direction'}>
 
-                <Link
-                    className="product-open"
-                    to={`/product/${product.id}`}
-                    aria-label={`${t.product.details || t.product.view3d}: ${product.name}`}
-                >
-                    <ArrowUpRight size={17} />
-                </Link>
+                            <button
+                                type="button"
+                                className="three-d-badge"
+                                onClick={() => setShow3D(prev => !prev)}
+                                aria-label={show3D ? 'Show photo' : 'Show 3D model'}
+                            >
+                                <Box size={14} />
+                                {show3D ? 'Фото' : '3D'}
+                            </button>
+
+
+
+                            <button
+                                type="button"
+                                className="product-open"
+                                onClick={() => navigate(`/product/${product.id}`)}
+                                aria-label={`${t.product.details || t.product.view3d}: ${product.name}`}
+                            >
+                                <ArrowUpRight size={17} />
+                            </button>
+                    </div>
             </div>
             <div className="product-info">
                 <span className="product-category">{product.category}</span>
@@ -588,7 +626,12 @@ export default function ProductCard({ product, onAdd }) {
                                     .filter(Boolean)
                                     .join(' ')}
                                 disabled={!isAvailable}
-                                onClick={() => setSelectedSize(item.size)}
+                                onClick={() => {
+                                    console.log('📏 CLICK SIZE:', item.size);
+                                    console.log('📦 FULL SIZE ITEM:', item);
+
+                                    setSelectedSize(item.size);
+                                }}
                             >
                                         <span>
                                             {item.size}
@@ -626,36 +669,94 @@ export default function ProductCard({ product, onAdd }) {
 
 
 
+                {/*<div className="product-bottom">*/}
+                {/*    <div className="price">*/}
+                {/*        <strong>€{product.price}</strong>{product.oldPrice &&*/}
+                {/*        <del>€{product.oldPrice}</del>}</div>*/}
+
+                {/*    <button*/}
+
+                {/*        type="button"*/}
+                {/*        className="add-button"*/}
+                {/*        disabled={!available || (hasSizes && !selectedSize)}*/}
+                {/*        onClick={handleAdd}*/}
+                {/*    >*/}
+                {/*        <ShoppingBag size={17} />*/}
+
+                {/*        {hasSizes && !selectedSize*/}
+                {/*            ? 'Оберіть розмір'*/}
+                {/*            : available*/}
+                {/*                ? t.product.add*/}
+                {/*                : 'Немає в наявності'*/}
+                {/*        }*/}
+                {/*    </button>*/}
+
+
+                {/*</div>*/}
+
                 <div className="product-bottom">
+
                     <div className="price">
-                        <strong>€{product.price}</strong>{product.oldPrice &&
-                        <del>€{product.oldPrice}</del>}</div>
+                        <strong>€{product.price}</strong>
+                        {product.oldPrice && (
+                            <del>€{product.oldPrice}</del>
+                        )}
+                    </div>
 
-                    <button
+                    <div className="product-bottom-actions">
 
-                        type="button"
-                        className="add-button"
-                        disabled={!available || (hasSizes && !selectedSize)}
-                        onClick={handleAdd}
-                    >
-                        <ShoppingBag size={17} />
+                        <button
+                            type="button"
+                            className="add-button"
+                            disabled={!available || (hasSizes && !selectedSize)}
+                            onClick={handleAdd}
+                        >
+                            <ShoppingBag size={17} />
 
-                        {hasSizes && !selectedSize
-                            ? 'Оберіть розмір'
-                            : available
-                                ? t.product.add
-                                : 'Немає в наявності'
-                        }
-                    </button>
+                            {hasSizes && !selectedSize
+                                ? 'Оберіть розмір'
+                                : available
+                                    ? t.product.add
+                                    : 'Немає в наявності'
+                            }
+                        </button>
 
-                    {/*<button*/}
-                    {/*    className="add-button"*/}
-                    {/*    onClick={handleAdd}*/}
-                    {/*>*/}
-                    {/*    <ShoppingBag size={17} />*/}
-                    {/*    {t.product.add}*/}
-                    {/*</button>*/}
+                        <button
+                            type="button"
+                            className={`wishlist-button ${
+                                isInWishlist(product.id, selectedSize || null)
+                                    ? 'active'
+                                    : ''
+                            }`}
+                            onClick={handleWishlist}
+                            aria-label={
+                                isInWishlist(product.id, selectedSize || null)
+                                    ? 'Видалити з обраного'
+                                    : 'Додати в обране'
+                            }
+                        >
+                            <Heart
+                                size={19}
+                                fill={
+                                    isInWishlist(product.id, selectedSize || null)
+                                        ? 'currentColor'
+                                        : 'none'
+                                }
+                            />
+                        </button>
+                        {wishlistMessage && (
+                            <div className="wishlist-message">
+                                {wishlistMessage}
+                            </div>
+                        )}
+
+
+
+                    </div>
+
                 </div>
+
+
             </div>
         </article>
 

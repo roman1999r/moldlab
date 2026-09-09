@@ -965,14 +965,18 @@ export default function App() {
                 <Route
                     path="/account"
                     element={
-                        <Account />
+                        <Account
+                            onAdd={addToCart}
+                        />
                     }
                 />
 
                 <Route
                     path="/wishlist"
                     element={
-                        <Wishlist />
+                        <Wishlist
+                            addToCart={addToCart}
+                        />
                     }
                 />
 

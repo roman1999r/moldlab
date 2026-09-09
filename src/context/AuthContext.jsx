@@ -144,6 +144,12 @@ export function AuthProvider({ children }) {
         return data;
     }
 
+    async function refreshProfile() {
+        if (!user) return;
+
+        await loadProfile(user);
+    }
+
     useEffect(() => {
         let mounted = true;
 
@@ -253,6 +259,7 @@ export function AuthProvider({ children }) {
                 isAdmin,
                 loading,
                 logout,
+                refreshProfile,
                 isAuthenticated: !!user
             }}
         >

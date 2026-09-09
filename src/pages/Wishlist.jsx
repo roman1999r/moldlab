@@ -308,20 +308,22 @@ import { Link } from 'react-router-dom';
 
 import { useWishlist } from '../hooks/useWishlist';
 
-export default function Wishlist({
-                                     onAdd
-                                 }) {
+export default function Wishlist({ onAdd }) {
     const {
         wishlist,
         removeFromWishlist,
         clearWishlist
     } = useWishlist();
 
+    console.log('💖 WISHLIST PAGE DATA:', wishlist);
+
     return (
         <main className="page">
             <div className="container">
 
-                <div className="wishlist-page-head">
+                {/* HEADER */}
+                <div className="wishlist-page-header">
+
                     <div>
                         <div className="eyebrow">
                             <Heart size={14} />
@@ -337,6 +339,7 @@ export default function Wishlist({
 
                     {wishlist.length > 0 && (
                         <button
+                            type="button"
                             className="button secondary"
                             onClick={clearWishlist}
                         >
@@ -344,9 +347,12 @@ export default function Wishlist({
                             Очистити
                         </button>
                     )}
+
                 </div>
 
+                {/* EMPTY */}
                 {wishlist.length === 0 ? (
+
                     <div className="wishlist-empty-page">
 
                         <Heart size={45} />
@@ -356,9 +362,8 @@ export default function Wishlist({
                         </h2>
 
                         <p>
-                            Додавайте товари до
-                            обраного натисканням
-                            на сердечко.
+                            Додавайте товари до обраного
+                            натисканням на сердечко.
                         </p>
 
                         <Link
@@ -369,84 +374,186 @@ export default function Wishlist({
                         </Link>
 
                     </div>
+
                 ) : (
+
+                    /* WISHLIST GRID */
                     <div className="wishlist-page-grid">
 
-                        {wishlist.map(product => (
-                            <article
-                                className="wishlist-page-card"
-                                key={product.id}
-                            >
+                        {wishlist.map((product) => {
 
-                                <Link
-                                    to={`/product/${product.id}`}
-                                    className="wishlist-page-image"
+                            const selectedSize =
+                                product.selectedSize !== null &&
+                                product.selectedSize !== undefined &&
+                                product.selectedSize !== ''
+                                    ? String(product.selectedSize)
+                                    : null;
+
+                            const image =
+                                product.image ||
+                                product.image_url ||
+                                product.imageUrl ||
+                                null;
+
+                            console.log(
+                                '💖 RENDER WISHLIST PRODUCT:',
+                                {
+                                    id: product.id,
+                                    wishlistId: product.wishlistId,
+                                    name: product.name,
+                                    selectedSize,
+                                    image
+                                }
+                            );
+
+                            return (
+                                <article
+                                    className="wishlist-page-card"
+                                    key={`${product.id}-${selectedSize}-${product.wishlistId}`}
                                 >
-                                    {product.image_url ? (
-                                        <img
-                                            src={
-                                                product.image_url
-                                            }
-                                            alt={
-                                                product.name
-                                            }
-                                        />
-                                    ) : (
-                                        <div>
-                                            Немає фото
+
+                                    {/* IMAGE */}
+                                    <Link
+                                        to={`/product/${product.id}`}
+                                        className="wishlist-page-image"
+                                    >
+                                        {image ? (
+                                            <img
+                                                src={image}
+                                                alt={
+                                                    product.name ||
+                                                    'Товар'
+                                                }
+                                            />
+                                        ) : (
+                                            <div>
+                                                Немає фото
+                                            </div>
+                                        )}
+                                    </Link>
+
+                                    {/* INFO */}
+                                    <div className="wishlist-page-info">
+
+                                        <div className="category">
+                                            {product.category ||
+                                                'MOLD'}
                                         </div>
-                                    )}
-                                </Link>
 
-                                <div>
-                                    <div className="category">
-                                        {product.category ||
-                                            'MOLD'}
+                                        <h3>
+                                            {product.name ||
+                                                'Без назви'}
+                                        </h3>
+
+                                        {product.description && (
+                                            <p>
+                                                {product.description}
+                                            </p>
+                                        )}
+
+                                        {/* SIZE */}
+                                        <div className="wishlist-selected-size">
+                                            <span>
+                                                Розмір:
+                                            </span>
+
+                                            <strong>
+                                                {selectedSize ||
+                                                    'Не вибрано'}
+                                            </strong>
+                                        </div>
+
+                                        {/* PRICE */}
+                                        <div className="wishlist-price">
+
+                                            <strong>
+                                                €
+                                                {Number(
+                                                    product.price || 0
+                                                ).toFixed(2)}
+                                            </strong>
+
+                                            {product.oldPrice && (
+                                                <del>
+                                                    €
+                                                    {Number(
+                                                        product.oldPrice
+                                                    ).toFixed(2)}
+                                                </del>
+                                            )}
+
+                                        </div>
+
+                                        {/* ACTIONS */}
+                                        <div className="wishlist-page-actions">
+
+                                            {/* ADD TO CART */}
+                                            <button
+                                                type="button"
+                                                className="button primary wishlist-add-cart"
+                                                onClick={() => {
+                                                    console.log(
+                                                        '🛒 ADD FROM WISHLIST:',
+                                                        {
+                                                            productId:
+                                                            product.id,
+                                                            selectedSize
+                                                        }
+                                                    );
+
+                                                    if (!selectedSize) {
+                                                        console.log(
+                                                            '❌ SIZE IS MISSING'
+                                                        );
+                                                        return;
+                                                    }
+
+                                                    onAdd?.(
+                                                        product,
+                                                        selectedSize
+                                                    );
+                                                }}
+                                            >
+                                                <ShoppingCart
+                                                    size={16}
+                                                />
+
+                                                Додати в кошик
+                                            </button>
+
+                                            {/* DELETE */}
+                                            <button
+                                                type="button"
+                                                className="button secondary wishlist-delete-button"
+                                                onClick={() => {
+                                                    console.log(
+                                                        '🗑️ REMOVE WISHLIST:',
+                                                        {
+                                                            productId:
+                                                            product.id,
+                                                            selectedSize
+                                                        }
+                                                    );
+
+                                                    removeFromWishlist(
+                                                        product.id,
+                                                        selectedSize
+                                                    );
+                                                }}
+                                                aria-label="Видалити з обраного"
+                                            >
+                                                <Trash2
+                                                    size={16}
+                                                />
+                                            </button>
+
+                                        </div>
+
                                     </div>
 
-                                    <h3>
-                                        {product.name}
-                                    </h3>
-
-                                    <strong>
-                                        €{Number(
-                                        product.price ||
-                                        0
-                                    ).toFixed(2)}
-                                    </strong>
-
-                                    <div className="wishlist-page-actions">
-
-                                        <button
-                                            className="button primary"
-                                            onClick={() =>
-                                                onAdd(product)
-                                            }
-                                        >
-                                            <ShoppingCart
-                                                size={16}
-                                            />
-                                            Додати в кошик
-                                        </button>
-
-                                        <button
-                                            className="button secondary"
-                                            onClick={() =>
-                                                removeFromWishlist(
-                                                    product.id
-                                                )
-                                            }
-                                        >
-                                            <Trash2
-                                                size={16}
-                                            />
-                                        </button>
-
-                                    </div>
-                                </div>
-
-                            </article>
-                        ))}
+                                </article>
+                            );
+                        })}
 
                     </div>
                 )}
