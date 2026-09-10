@@ -583,10 +583,14 @@ export default function ProductCard({ product, onAdd }) {
                                 type="button"
                                 className="three-d-badge"
                                 onClick={() => setShow3D(prev => !prev)}
-                                aria-label={show3D ? 'Show photo' : 'Show 3D model'}
+                                aria-label={
+                                    show3D
+                                        ? t.product.showPhotoAria
+                                        : t.product.show3dAria
+                                }
                             >
                                 <Box size={14} />
-                                {show3D ? 'Фото' : '3D'}
+                                {show3D ? t.product.showPhoto : t.product.show3d}
                             </button>
 
 
@@ -609,7 +613,7 @@ export default function ProductCard({ product, onAdd }) {
                 {hasSizes && (<div className="product-sizes">
 
                         <span className="product-sizes-title">
-                            Розмір:
+                            {t.product.size}:
                         </span>
 
                     <div className="size-list">
@@ -638,6 +642,7 @@ export default function ProductCard({ product, onAdd }) {
                                         </span>
 
                                 {!isAvailable && (<span className="size-stock">
+                                    {t.product.stockOut}
 
                                             </span>)}
                             </button>);
@@ -649,21 +654,25 @@ export default function ProductCard({ product, onAdd }) {
                 {/* STOCK */}
                 {hasSizes && selectedSizeData && (<div className="product-stock">
 
-                    {Number(selectedSizeData.stock) > 0 ? (<>
-                        В наявності:{' '}
-                        {selectedSizeData.stock} шт.
-                    </>) : ('Немає в наявності')}
+                    {Number(selectedSizeData.stock) > 0 ? (
+                        <>
+                            {t.product.inStock}:{' '}
+                            {selectedSizeData.stock} {t.product.pieces}
+                        </>
+                    ) : (
+                        t.product.outOfStock
+                    )}
 
                 </div>)}
 
                 {/* Якщо є розміри, але нічого не вибрано */}
                 {hasSizes && !selectedSize && (<div className="product-stock">
-                    Оберіть розмір
+                    {t.product.selectSize}
                 </div>)}
 
                 {/* Якщо розмірів немає */}
                 {!hasSizes && (<div className="product-stock">
-                    {Number(product?.stock || 0) > 0 ? `В наявності: ${product.stock} шт.` : 'Немає в наявності'}
+                    {Number(product?.stock || 0) > 0 ? `${t.product.inStock}: ${product.stock} шт.` : t.product.outOfStock}
                 </div>)}
 
 
@@ -714,10 +723,10 @@ export default function ProductCard({ product, onAdd }) {
                             <ShoppingBag size={17} />
 
                             {hasSizes && !selectedSize
-                                ? 'Оберіть розмір'
+                                ? t.product.selectSize
                                 : available
                                     ? t.product.add
-                                    : 'Немає в наявності'
+                                    : t.product.outOfStock
                             }
                         </button>
 

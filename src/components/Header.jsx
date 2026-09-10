@@ -202,7 +202,7 @@ import {useLanguage} from "../context/LanguageContext.jsx";
 
 export default function Header({count = 0}) {
     const [menuOpen, setMenuOpen] = useState(false);
-    const {language, t} = useLanguage();
+    const {t} = useLanguage();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -292,7 +292,8 @@ export default function Header({count = 0}) {
                         menuOpen ? 'open' : ''
                     }`}
                 >
-                    <Link
+
+                    <Link to="/"
                         onClick={() => goToSection('hero')}
                     >
                         {t.nav.main}
@@ -349,7 +350,7 @@ export default function Header({count = 0}) {
                             to="/login"
                             onClick={closeMenu}
                         >
-                            Увійти
+                            {t.nav.login}
                         </Link>
                     )}
                 </nav>

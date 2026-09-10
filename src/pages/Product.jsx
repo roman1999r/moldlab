@@ -529,7 +529,7 @@ export default function Product({ products, onAdd }) {
                                 <div className="product-size-title">
 
                                     <span>
-                                        {t.product.size}
+                                        {t.product.size} :
                                     </span>
 
                                     {selectedSize && (
@@ -602,7 +602,7 @@ export default function Product({ products, onAdd }) {
 
                                                     {isOutOfStock && (
                                                         <small>
-                                                            Немає в наявності
+                                                            {t.product.stockOut}
                                                         </small>
                                                     )}
 
@@ -630,7 +630,7 @@ export default function Product({ products, onAdd }) {
                                     ) > 0
                                         ? (
                                             <>
-                                                В наявності:{' '}
+                                                {t.product.inStock}:{' '}
                                                 {
                                                     selectedSizeData.stock
                                                 }{' '}
@@ -638,7 +638,7 @@ export default function Product({ products, onAdd }) {
                                             </>
                                         )
                                         : (
-                                            'Немає в наявності'
+                                            t.product.stockOut
                                         )}
 
                                 </div>
@@ -650,7 +650,7 @@ export default function Product({ products, onAdd }) {
                         {hasSizes &&
                             !selectedSize && (
                                 <div className="product-stock">
-                                    Оберіть розмір
+                                    {t.product.selectSize}
                                 </div>
                             )}
 
@@ -663,8 +663,8 @@ export default function Product({ products, onAdd }) {
                                 {Number(
                                     p.stock || 0
                                 ) > 0
-                                    ? `В наявності: ${p.stock} шт.`
-                                    : 'Немає в наявності'}
+                                    ? `${t.product.inStock}: ${p.stock} шт.`
+                                    : t.product.stockOut}
 
                             </div>
                         )}
@@ -738,10 +738,10 @@ export default function Product({ products, onAdd }) {
 
                             {hasSizes &&
                             !selectedSize
-                                ? 'Оберіть розмір'
+                                ? t.product.selectSize
                                 : available
                                     ? t.product.add
-                                    : 'Немає в наявності'}
+                                    : t.product.stockOut}
 
                         </button>
 

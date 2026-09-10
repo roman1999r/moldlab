@@ -11,7 +11,8 @@ export const translations = {
             main: "Головна",
             admin_panel: "Адмін панель",
             pagina: "Акаунт",
-            exit: "Вийти"
+            exit: "Вийти",
+            login: 'Увійти'
         },
         hero: {
             eyebrow: 'Для шоколатьє',
@@ -47,11 +48,14 @@ export const translations = {
         product: {
             category: 'Категорія',
             size: 'Розмір',
+            selectSize: "Оберіть розмір",
             cells: 'Комірки',
             preview: '3D перегляд',
             details: 'Відкрити товар',
             add: 'Додати в кошик',
             back: 'Назад',
+            inStock: "В наявності",
+            stockOut: 'Немає в наявності',
             notFound: 'Товар не знайдено',
             view3d: '3D модель',
             rotate: 'Покрутіть модель',
@@ -59,18 +63,99 @@ export const translations = {
         },
         cart: {
             eyebrow: 'Ваш кошик',
-            title: 'Замовлення',
-            total: 'Разом',
+            title: 'Ваш кошик товарів',
+
+            item: 'товар',
+            items: 'товари',
+            itemsMany: 'товарів',
+
+            size: 'Розмір',
+            stock: 'В наявності',
+            pieces: 'шт.',
+            outOfStock: 'Немає в наявності',
+            maxQuantity: 'Максимальна кількість',
+            remaining: 'Залишилось',
+
+            clear: 'Очистити кошик',
+            remove: 'Видалити',
+            decreaseQuantity: 'Зменшити кількість',
+            increaseQuantity: 'Збільшити кількість',
+
+            continueShopping: 'Продовжити покупки',
+
+            emptyTitle: 'Ваш кошик порожній',
+            emptyText: 'Додайте товари до кошика, щоб оформити замовлення.',
+            goToShop: 'Перейти до магазину',
+
+            summary: 'Сума замовлення',
+            subtotal: 'Підсумок',
+            total: 'Всього',
             checkout: 'Оформити замовлення',
-            back: 'Назад',
-            name: "Імʼя",
+
+            checkoutTitle: 'Оформлення',
+            shippingData: 'Дані про відправку',
+            yourOrder: 'Ваше замовлення',
+
+            customer: 'Дані отримувача',
+            firstName: 'Імʼя',
+            lastName: 'Прізвище',
             email: 'Email',
             phone: 'Телефон',
-            comment: 'Коментар',
-            submit: 'Підтвердити замовлення',
-            success: 'Дякуємо! Замовлення прийнято.',
-            error: 'Не вдалося оформити замовлення. Спробуйте ще раз.',
-            connect: 'Підключіть Supabase у .env.local.'
+
+            savedAddresses: 'Збережені адреси',
+            loadingAddresses: 'Завантаження адрес...',
+            newAddress: 'Ввести нову адресу',
+            address: 'Адреса',
+            defaultAddress: 'Основна',
+            pickupPointLabel: 'Пункт',
+
+            shippingCountry: 'Країна доставки',
+            shippingMethod: 'Спосіб доставки',
+            city: 'Місто',
+            cityPlaceholder: 'Місто *',
+
+            pickupPoint: 'Пункт видачі / Paczkomat',
+            pickupPointPlaceholderPL: 'Наприклад, WAW147H',
+            pickupPointPlaceholder: 'Назва або номер пункту',
+            pickupPointHelp: 'Введіть номер або назву пункту вручну. Реальний вибір пункту підключимо пізніше через API.',
+
+            shippingAddress: 'Адреса доставки',
+            streetPlaceholder: 'Вулиця та номер будинку *',
+            apartmentPlaceholder: 'Номер квартири / приміщення',
+            postalCodePlaceholder: 'Поштовий індекс *',
+
+            payment: 'Спосіб оплати',
+            selectPayment: 'Виберіть спосіб оплати',
+            card: 'Банківська картка',
+            blik: 'BLIK',
+            przelewy24: 'Przelewy24',
+            paypal: 'PayPal',
+
+            comment: 'Коментар до замовлення (необовʼязково)',
+
+            close: 'Закрити',
+            backToCart: 'Повернутися до кошика',
+            order: 'Замовити',
+            creatingOrder: 'Створення замовлення...',
+
+            requiredFirstName: 'Введіть імʼя.',
+            requiredLastName: 'Введіть прізвище.',
+            requiredEmail: 'Введіть email.',
+            requiredPhone: 'Введіть номер телефону.',
+            requiredCountry: 'Виберіть країну доставки.',
+            requiredMethod: 'Виберіть спосіб доставки.',
+            requiredCity: 'Введіть місто.',
+            requiredAddress: 'Вкажіть вулицю та номер будинку.',
+            requiredPostalCode: 'Вкажіть поштовий індекс.',
+            requiredPickupPoint: 'Вкажіть пункт видачі або номер локера.',
+            requiredPayment: 'Виберіть спосіб оплати.',
+
+            connect: 'Підключіть Supabase у .env.local.',
+            createOrderError: 'Не вдалося створити замовлення',
+            success: 'Замовлення успішно оформлено!',
+            error: 'Помилка оформлення замовлення.'
+
+
         },
         customForm: {
             title: 'Обговорити проєкт',
@@ -141,7 +226,8 @@ export const translations = {
             main: "Strona główna",
             admin_panel: "Panel admina",
             pagina: "Profil",
-            exit: "Wyjście"
+            exit: "Wyjście",
+            login: 'Zaloguj się'
         },
         hero: {
             eyebrow: 'Dla czekoladników',
@@ -177,11 +263,14 @@ export const translations = {
         product: {
             category: 'Kategoria',
             size: 'Rozmiar',
+            selectSize: "Wybierz rozmiar",
             cells: 'Gniazda',
             preview: 'Podgląd 3D',
             details: 'Otwórz produkt',
             add: 'Dodaj do koszyka',
             back: 'Wstecz',
+            inStock: "Dostępne",
+            stockOut: 'Brak w magazynie',
             notFound: 'Nie znaleziono produktu',
             view3d: 'Model 3D',
             rotate: 'Obróć model',
@@ -189,18 +278,97 @@ export const translations = {
         },
         cart: {
             eyebrow: 'Twój koszyk',
-            title: 'Zamówienie',
+            title: 'Twój koszyk produktów',
+
+            item: 'produkt',
+            items: 'produkty',
+            itemsMany: 'produktów',
+
+            size: 'Rozmiar',
+            stock: 'Dostępne',
+            pieces: 'szt.',
+            outOfStock: 'Brak w magazynie',
+            maxQuantity: 'Maksymalna ilość',
+            remaining: 'Pozostało',
+
+            clear: 'Wyczyść koszyk',
+            remove: 'Usuń',
+            decreaseQuantity: 'Zmniejsz ilość',
+            increaseQuantity: 'Zwiększ ilość',
+
+            continueShopping: 'Kontynuuj zakupy',
+
+            emptyTitle: 'Twój koszyk jest pusty',
+            emptyText: 'Dodaj produkty do koszyka, aby złożyć zamówienie.',
+            goToShop: 'Przejdź do sklepu',
+
+            summary: 'Podsumowanie zamówienia',
+            subtotal: 'Podsumowanie',
             total: 'Razem',
             checkout: 'Przejdź do zamówienia',
-            back: 'Wstecz',
-            name: 'Imię',
-            email: 'Email',
+
+            checkoutTitle: 'Zamówienie',
+            shippingData: 'Dane wysyłki',
+            yourOrder: 'Twoje zamówienie',
+
+            customer: 'Dane odbiorcy',
+            firstName: 'Imię',
+            lastName: 'Nazwisko',
+            email: 'E-mail',
             phone: 'Telefon',
-            comment: 'Komentarz',
-            submit: 'Potwierdź zamówienie',
-            success: 'Dziękujemy! Zamówienie zostało przyjęte.',
-            error: 'Nie udało się złożyć zamówienia. Spróbuj ponownie.',
-            connect: 'Podłącz Supabase w .env.local.'
+
+            savedAddresses: 'Zapisane adresy',
+            loadingAddresses: 'Ładowanie adresów...',
+            newAddress: 'Wprowadź nowy adres',
+            address: 'Adres',
+            defaultAddress: 'Główny',
+            pickupPointLabel: 'Punkt',
+
+            shippingCountry: 'Kraj dostawy',
+            shippingMethod: 'Sposób dostawy',
+            city: 'Miasto',
+            cityPlaceholder: 'Miasto *',
+
+            pickupPoint: 'Punkt odbioru / Paczkomat',
+            pickupPointPlaceholderPL: 'Np. WAW147H',
+            pickupPointPlaceholder: 'Nazwa lub numer punktu',
+            pickupPointHelp: 'Wprowadź ręcznie nazwę lub numer punktu. Później podłączymy rzeczywisty wybór punktu przez API.',
+
+            shippingAddress: 'Adres dostawy',
+            streetPlaceholder: 'Ulica i numer domu *',
+            apartmentPlaceholder: 'Numer lokalu / mieszkania',
+            postalCodePlaceholder: 'Kod pocztowy *',
+
+            payment: 'Metoda płatności',
+            selectPayment: 'Wybierz metodę płatności',
+            card: 'Karta płatnicza',
+            blik: 'BLIK',
+            przelewy24: 'Przelewy24',
+            paypal: 'PayPal',
+
+            comment: 'Komentarz do zamówienia (opcjonalnie)',
+
+            close: 'Zamknij',
+            backToCart: 'Wróć do koszyka',
+            order: 'Zamawiam',
+            creatingOrder: 'Tworzenie zamówienia...',
+
+            requiredFirstName: 'Wprowadź imię.',
+            requiredLastName: 'Wprowadź nazwisko.',
+            requiredEmail: 'Wprowadź adres e-mail.',
+            requiredPhone: 'Wprowadź numer telefonu.',
+            requiredCountry: 'Wybierz kraj dostawy.',
+            requiredMethod: 'Wybierz sposób dostawy.',
+            requiredCity: 'Wprowadź miasto.',
+            requiredAddress: 'Podaj ulicę i numer domu.',
+            requiredPostalCode: 'Podaj kod pocztowy.',
+            requiredPickupPoint: 'Podaj punkt odbioru lub numer skrytki.',
+            requiredPayment: 'Wybierz metodę płatności.',
+
+            connect: 'Podłącz Supabase w .env.local.',
+            createOrderError: 'Nie udało się utworzyć zamówienia',
+            success: 'Zamówienie zostało pomyślnie złożone!',
+            error: 'Wystąpił błąd podczas składania zamówienia.'
         },
         customForm: {
             title: 'Omów projekt',
@@ -270,7 +438,8 @@ export const translations = {
             main: "Homepage ",
             admin_panel: "Admin panel",
             pagina: "Account",
-            exit: "Logout"
+            exit: "Logout",
+            login: 'Login'
         },
         hero: {
             eyebrow: 'For chocolatiers',
@@ -306,11 +475,14 @@ export const translations = {
         product: {
             category: 'Category',
             size: 'Size',
+            selectSize: "Select size",
             cells: 'Cavities',
             preview: '3D preview',
             details: 'Open product',
             add: 'Add to cart',
             back: 'Back',
+            inStock: "In stock",
+            stockOut: 'Out of stock',
             notFound: 'Product not found',
             view3d: '3D model',
             rotate: 'Rotate the model',
@@ -318,18 +490,97 @@ export const translations = {
         },
         cart: {
             eyebrow: 'Your cart',
-            title: 'Order',
+            title: 'Your shopping cart',
+
+            item: 'item',
+            items: 'items',
+            itemsMany: 'items',
+
+            size: 'Size',
+            stock: 'In stock',
+            pieces: 'pcs.',
+            outOfStock: 'Out of stock',
+            maxQuantity: 'Maximum quantity',
+            remaining: 'Remaining',
+
+            clear: 'Clear cart',
+            remove: 'Remove',
+            decreaseQuantity: 'Decrease quantity',
+            increaseQuantity: 'Increase quantity',
+
+            continueShopping: 'Continue shopping',
+
+            emptyTitle: 'Your cart is empty',
+            emptyText: 'Add products to your cart to place an order.',
+            goToShop: 'Go to shop',
+
+            summary: 'Order summary',
+            subtotal: 'Subtotal',
             total: 'Total',
             checkout: 'Checkout',
-            back: 'Back',
-            name: 'Name',
+
+            checkoutTitle: 'Checkout',
+            shippingData: 'Shipping details',
+            yourOrder: 'Your order',
+
+            customer: 'Recipient details',
+            firstName: 'First name',
+            lastName: 'Last name',
             email: 'Email',
             phone: 'Phone',
-            comment: 'Comment',
-            submit: 'Place order',
-            success: 'Thank you! Your order has been received.',
-            error: 'Could not place the order. Please try again.',
-            connect: 'Connect Supabase in .env.local.'
+
+            savedAddresses: 'Saved addresses',
+            loadingAddresses: 'Loading addresses...',
+            newAddress: 'Enter a new address',
+            address: 'Address',
+            defaultAddress: 'Default',
+            pickupPointLabel: 'Pickup point',
+
+            shippingCountry: 'Shipping country',
+            shippingMethod: 'Delivery method',
+            city: 'City',
+            cityPlaceholder: 'City *',
+
+            pickupPoint: 'Pickup point / Locker',
+            pickupPointPlaceholderPL: 'e.g. WAW147H',
+            pickupPointPlaceholder: 'Pickup point name or number',
+            pickupPointHelp: 'Enter the pickup point name or number manually. Real pickup point selection will be connected later via API.',
+
+            shippingAddress: 'Delivery address',
+            streetPlaceholder: 'Street and house number *',
+            apartmentPlaceholder: 'Apartment / unit number',
+            postalCodePlaceholder: 'Postal code *',
+
+            payment: 'Payment method',
+            selectPayment: 'Select a payment method',
+            card: 'Payment card',
+            blik: 'BLIK',
+            przelewy24: 'Przelewy24',
+            paypal: 'PayPal',
+
+            comment: 'Order comment (optional)',
+
+            close: 'Close',
+            backToCart: 'Back to cart',
+            order: 'Place order',
+            creatingOrder: 'Creating order...',
+
+            requiredFirstName: 'Enter your first name.',
+            requiredLastName: 'Enter your last name.',
+            requiredEmail: 'Enter your email.',
+            requiredPhone: 'Enter your phone number.',
+            requiredCountry: 'Select a shipping country.',
+            requiredMethod: 'Select a delivery method.',
+            requiredCity: 'Enter your city.',
+            requiredAddress: 'Enter your street and house number.',
+            requiredPostalCode: 'Enter your postal code.',
+            requiredPickupPoint: 'Enter a pickup point or locker number.',
+            requiredPayment: 'Select a payment method.',
+
+            connect: 'Connect Supabase in .env.local.',
+            createOrderError: 'Failed to create the order',
+            success: 'Your order has been placed successfully!',
+            error: 'There was an error placing your order.'
         },
         customForm: {
             title: 'Discuss your project',

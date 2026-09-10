@@ -3367,13 +3367,13 @@ export default function Cart({
                     <div className="container">
 
                         <Link to="/">
-                            Головна
+                            {t.nav.main}
                         </Link>
 
                         <span>›</span>
 
                         <span>
-                            Корзина
+                            {t.nav.cart}
                         </span>
 
                     </div>
@@ -3385,20 +3385,20 @@ export default function Cart({
                     <ShoppingBag size={48} />
 
                     <h1>
-                        Ваша корзина порожня
+                        {t.cart.emptyTitle}
                     </h1>
 
                     <p>
-                        Додайте товари до корзини,
-                        щоб оформити замовлення.
+                        {t.cart.emptyText}
                     </p>
 
                     <Link
                         to="/"
                         className="button primary"
                     >
-                        Перейти до магазину
+                        {t.cart.goToShop}
                     </Link>
+
 
                     {message && (
                         <div className="notice">
@@ -3427,13 +3427,13 @@ export default function Cart({
                     <div className="container">
 
                         <Link to="/">
-                            Головна
+                            {t.nav.main}
                         </Link>
 
                         <span>›</span>
 
                         <span>
-                            Корзина
+                            {t.nav.cart}
                         </span>
 
                     </div>
@@ -3453,16 +3453,16 @@ export default function Cart({
                             <div>
 
                                 <h1>
-                                    Ваша корзина товарів
+                                    {t.cart.title}
                                 </h1>
 
                                 <p>
                                     {count}{' '}
                                     {count === 1
-                                        ? 'товар'
+                                        ? t.cart.item
                                         : count < 5
-                                            ? 'товари'
-                                            : 'товарів'}
+                                            ? t.cart.items
+                                            : t.cart.itemsMany}
                                 </p>
 
                             </div>
@@ -3472,7 +3472,7 @@ export default function Cart({
                                 className="cart-clear"
                                 onClick={clearCart}
                             >
-                                Очистити корзину
+                                {t.cart.clear}
                             </button>
 
                         </div>
@@ -3567,7 +3567,7 @@ export default function Cart({
 
                                             {item.selectedSize && (
                                                 <span className="cart-product-size">
-                                                    Розмір:{' '}
+                                                    {t.cart.size}:{' '}
                                                     <strong>
                                                         {
                                                             item.selectedSize
@@ -3630,7 +3630,7 @@ export default function Cart({
 
                                             {stock > 0 && (
                                                 <small className="cart-stock">
-                                                    В наявності:{' '}
+                                                    {t.cart.stock}:{' '}
                                                     {stock} шт.
                                                 </small>
                                             )}
@@ -3676,7 +3676,7 @@ export default function Cart({
                             to="/"
                             className="cart-continue"
                         >
-                            ← Продовжити покупки
+                            ← {t.cart.continueShopping}
                         </Link>
 
                     </section>
@@ -3688,7 +3688,7 @@ export default function Cart({
                     <aside className="cart-summary">
 
                         <h2>
-                            Сума замовлення
+                            {t.cart.summary}
                         </h2>
 
                         <div className="cart-summary-box">
@@ -3696,7 +3696,7 @@ export default function Cart({
                             <div className="cart-summary-row">
 
                                 <span>
-                                    Підсумок
+                                    {t.cart.subtotal}
                                 </span>
 
                                 <strong>
@@ -3710,7 +3710,7 @@ export default function Cart({
                             <div className="cart-summary-row cart-summary-total">
 
                                 <span>
-                                    Ітого
+                                    {t.cart.total}
                                 </span>
 
                                 <strong>
@@ -3726,7 +3726,7 @@ export default function Cart({
                             className="button primary cart-checkout"
                             onClick={openCheckout}
                         >
-                            Оформити замовлення
+                            {t.cart.checkout}
                         </button>
 
                         {message && (
@@ -3767,11 +3767,11 @@ export default function Cart({
                             <div>
 
                                 <span className="eyebrow">
-                                    Оформлення
+                                    {t.cart.checkoutTitle}
                                 </span>
 
                                 <h2>
-                                    Дані про відправку
+                                    {t.cart.shippingData}
                                 </h2>
 
                             </div>
@@ -3781,7 +3781,7 @@ export default function Cart({
                                 className="icon-button"
                                 onClick={closeCheckout}
                                 disabled={loading}
-                                aria-label="Закрити"
+                                aria-label={t.cart.close}
                             >
                                 <X size={20} />
                             </button>
@@ -3793,7 +3793,7 @@ export default function Cart({
                         <div className="checkout-order">
 
                             <div className="checkout-order-title">
-                                Ваше замовлення
+                                {t.cart.yourOrder}
                             </div>
 
                             {cart.map(item => (
@@ -3810,7 +3810,7 @@ export default function Cart({
 
                                         {item.selectedSize && (
                                             <small>
-                                                Розмір:{' '}
+                                                {t.cart.size}:{' '}
                                                 {
                                                     item.selectedSize
                                                 }
@@ -3844,7 +3844,7 @@ export default function Cart({
                             <div className="checkout-total">
 
                                 <span>
-                                    Всього
+                                    {t.cart.total}
                                 </span>
 
                                 <strong>
@@ -3865,7 +3865,7 @@ export default function Cart({
                             {/* CUSTOMER */}
 
                             <div className="checkout-section-title">
-                                Dane odbiorcy
+                                {t.cart.customer}
                             </div>
 
                             <div className="checkout-form-row">
@@ -3873,7 +3873,7 @@ export default function Cart({
                                 <input
                                     name="first_name"
                                     required
-                                    placeholder="Imię *"
+                                    placeholder={t.cart.firstName}
                                     defaultValue={
                                         selectedSavedAddress?.first_name ||
                                         ''
@@ -3884,7 +3884,7 @@ export default function Cart({
                                 <input
                                     name="last_name"
                                     required
-                                    placeholder="Nazwisko *"
+                                    placeholder={t.cart.lastName}
                                     defaultValue={
                                         selectedSavedAddress?.last_name ||
                                         ''
@@ -3898,7 +3898,7 @@ export default function Cart({
                                 name="email"
                                 required
                                 type="email"
-                                placeholder="E-mail *"
+                                placeholder={t.cart.email}
                                 defaultValue={
                                     user?.email || ''
                                 }
@@ -3909,7 +3909,7 @@ export default function Cart({
                                 name="phone"
                                 required
                                 type="tel"
-                                placeholder="Telefon *"
+                                placeholder={t.cart.phone}
                                 defaultValue={
                                     selectedSavedAddress?.phone ||
                                     profile?.phone ||
@@ -3925,7 +3925,7 @@ export default function Cart({
                             {user && (
                                 <>
                                     <div className="checkout-section-title">
-                                        Zapisane adresy
+                                        {t.cart.savedAddresses}
                                     </div>
 
                                     {addressesLoading ? (
@@ -3935,7 +3935,7 @@ export default function Cart({
                                                 className="spin"
                                             />
 
-                                            Завантаження адрес...
+                                            {t.cart.loadingAddresses}
                                         </div>
                                     ) : (
                                         <div className="checkout-saved-address">
@@ -3957,7 +3957,7 @@ export default function Cart({
                                                     {savedAddresses.length ===
                                                     0 ? (
                                                         <option value="new">
-                                                            + Ввести нову адресу
+                                                            {t.cart.newAddress}
                                                         </option>
                                                     ) : (
                                                         <>
@@ -3986,7 +3986,7 @@ export default function Cart({
                                                             )}
 
                                                             <option value="new">
-                                                                + Ввести нову адресу
+                                                                {t.cart.newAddress}
                                                             </option>
                                                         </>
                                                     )}
@@ -4026,7 +4026,7 @@ export default function Cart({
 
                                                         {selectedSavedAddress.pickup_point && (
                                                             <span>
-                                                                Пункт:{' '}
+                                                                {t.cart.pickupPointLabel}{' '}
                                                                 {
                                                                     selectedSavedAddress.pickup_point
                                                                 }
@@ -4047,7 +4047,7 @@ export default function Cart({
                             ================================== */}
 
                             <div className="checkout-section-title">
-                                Kraj dostawy
+                                {t.cart.shippingCountry}
                             </div>
 
                             <select
@@ -4100,7 +4100,7 @@ export default function Cart({
                             ================================== */}
 
                             <div className="checkout-section-title">
-                                Sposób dostawy
+                                {t.cart.shippingMethod}
                             </div>
 
                             <select
@@ -4142,13 +4142,13 @@ export default function Cart({
                             ================================== */}
 
                             <div className="checkout-section-title">
-                                Miasto
+                                {t.cart.city}
                             </div>
 
                             <input
                                 name="shipping_city"
                                 required
-                                placeholder="Miasto *"
+                                placeholder={t.cart.cityPlaceholder}
                                 value={shippingCity}
                                 onChange={e =>
                                     setShippingCity(
@@ -4166,7 +4166,7 @@ export default function Cart({
                                 <div className="checkout-pickup">
 
                                     <label>
-                                        Punkt odbioru / Paczkomat
+                                        {t.cart.pickupPoint}
                                     </label>
 
                                     <input
@@ -4174,8 +4174,8 @@ export default function Cart({
                                         required
                                         placeholder={
                                             shippingCountry === 'PL'
-                                                ? 'Np. WAW147H'
-                                                : 'Nazwa lub numer punktu'
+                                                ? t.cart.pickupPointPlaceholderPL
+                                                : t.cart.pickupPointPlaceholder
                                         }
                                         value={pickupPoint}
                                         onChange={e =>
@@ -4187,9 +4187,7 @@ export default function Cart({
                                     />
 
                                     <small>
-                                        Введіть номер або назву пункту
-                                        вручну. Реальний вибір пункту
-                                        підключимо пізніше через API.
+                                        {t.cart.pickupPointHelp}
                                     </small>
 
                                 </div>
@@ -4202,13 +4200,13 @@ export default function Cart({
                             {isCourierDelivery && (
                                 <>
                                     <div className="checkout-section-title">
-                                        Adres dostawy
+                                        {t.cart.shippingAddress}
                                     </div>
 
                                     <input
                                         name="shipping_address"
                                         required
-                                        placeholder="Ulica i numer domu *"
+                                        placeholder={t.cart.streetPlaceholder}
                                         defaultValue={
                                             selectedSavedAddress?.address ||
                                             ''
@@ -4220,7 +4218,7 @@ export default function Cart({
 
                                         <input
                                             name="shipping_apartment"
-                                            placeholder="Numer lokalu / mieszkania"
+                                            placeholder={t.cart.apartmentPlaceholder}
                                             defaultValue={
                                                 selectedSavedAddress?.apartment ||
                                                 ''
@@ -4231,7 +4229,7 @@ export default function Cart({
                                         <input
                                             name="shipping_postal_code"
                                             required
-                                            placeholder="Kod pocztowy *"
+                                            placeholder={t.cart.postalCodePlaceholder}
                                             defaultValue={
                                                 selectedSavedAddress?.postal_code ||
                                                 ''
@@ -4248,7 +4246,7 @@ export default function Cart({
                             ================================== */}
 
                             <div className="checkout-section-title">
-                                Metoda płatności
+                                {t.cart.payment}
                             </div>
 
                             <select
@@ -4262,23 +4260,23 @@ export default function Cart({
                                     value=""
                                     disabled
                                 >
-                                    Wybierz metodę płatności
+                                    {t.cart.selectPayment}
                                 </option>
 
                                 <option value="card">
-                                    Karta płatnicza
+                                    {t.cart.card}
                                 </option>
 
                                 <option value="blik">
-                                    BLIK
+                                    {t.cart.blik}
                                 </option>
 
                                 <option value="przelewy24">
-                                    Przelewy24
+                                    {t.cart.przelewy24}
                                 </option>
 
                                 <option value="paypal">
-                                    PayPal
+                                    {t.cart.paypal}
                                 </option>
 
                             </select>
@@ -4287,7 +4285,7 @@ export default function Cart({
 
                             <textarea
                                 name="comment"
-                                placeholder="Komentarz do zamówienia (opcjonalnie)"
+                                placeholder={t.cart.comment}
                                 disabled={loading}
                                 rows={4}
                             />
@@ -4313,11 +4311,11 @@ export default function Cart({
                                             className="spin"
                                         />
 
-                                        Tworzenie zamówienia...
+                                        {t.cart.creatingOrder}
                                     </>
                                 ) : (
                                     <>
-                                        Zamawiam
+                                        {t.cart.order}
                                         {' · '}
                                         €{total.toFixed(2)}
                                     </>
@@ -4331,7 +4329,7 @@ export default function Cart({
                                 onClick={closeCheckout}
                                 disabled={loading}
                             >
-                                Wróć do koszyka
+                                {t.cart.backToCart}
                             </button>
 
                         </form>
