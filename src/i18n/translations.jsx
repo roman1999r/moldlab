@@ -212,6 +212,32 @@ export const translations = {
             uploadModel: 'GLB',
             adminOnly: 'Доступ лише для адміністратора.',
             supabase: 'Підключіть Supabase.'
+        },
+        auth: {
+            login: 'Вхід',
+            register: 'Створити акаунт',
+            name: "Ваше імʼя",
+            email: 'Email',
+            password: 'Пароль',
+            forgotPassword: 'Забули пароль?',
+            resetPassword: 'Відновлення пароля',
+            newPassword: 'Новий пароль',
+            confirmPassword: 'Підтвердіть пароль',
+            sendResetLink: 'Надіслати посилання',
+            resetPasswordButton: 'Змінити пароль',
+            backToLogin: 'Повернутися до входу',
+            resetEmailSent: 'Якщо акаунт з таким email існує, ми надіслали посилання для відновлення пароля.',
+            passwordUpdated: 'Пароль успішно змінено. Тепер ви можете увійти.',
+            passwordMismatch: 'Паролі не збігаються.',
+            passwordMinLength: 'Пароль має містити щонайменше 6 символів.',
+            enterEmail: 'Введіть email.',
+            enterPassword: 'Введіть новий пароль.',
+            loading: 'Завантаження...',
+            loginButton: 'Увійти',
+            registerButton: 'Зареєструватися',
+            createAccount: 'Створити акаунт',
+            alreadyHaveAccount: 'У мене вже є акаунт',
+            error: 'Сталася помилка.'
         }
     },
     pl: {
@@ -425,6 +451,31 @@ export const translations = {
             uploadModel: 'GLB',
             adminOnly: 'Dostęp tylko dla administratora.',
             supabase: 'Podłącz Supabase.'
+        },
+        auth: {
+            login: 'Logowanie',
+            register: 'Utwórz konto',
+            name: 'Twoje imię',
+            email: 'Email',
+            password: 'Hasło',
+            forgotPassword: 'Zapomniałeś hasła?',
+            resetPassword: 'Resetowanie hasła',
+            newPassword: 'Nowe hasło',
+            confirmPassword: 'Potwierdź hasło',
+            sendResetLink: 'Wyślij link',
+            resetPasswordButton: 'Zmień hasło',
+            backToLogin: 'Wróć do logowania',
+            resetEmailSent: 'Jeśli konto z tym adresem email istnieje, wysłaliśmy link do resetowania hasła.',
+            passwordUpdated: 'Hasło zostało pomyślnie zmienione. Możesz się teraz zalogować.',
+            passwordMismatch: 'Hasła nie są takie same.',
+            passwordMinLength: 'Hasło musi zawierać co najmniej 6 znaków.',
+            enterEmail: 'Wprowadź adres email.',
+            enterPassword: 'Wprowadź nowe hasło.',
+            loading: 'Ładowanie...',
+            loginButton: 'Zaloguj się',
+            registerButton: 'Zarejestruj się',
+            createAccount: 'Utwórz konto',
+            alreadyHaveAccount: 'Mam już konto'
         }
     },
     en: {
@@ -637,6 +688,31 @@ export const translations = {
             uploadModel: 'GLB',
             adminOnly: 'Administrator access only.',
             supabase: 'Connect Supabase.'
+        },
+        auth: {
+            login: 'Sign in',
+            register: 'Create account',
+            name: 'Your name',
+            email: 'Email',
+            password: 'Password',
+            forgotPassword: 'Forgot password?',
+            resetPassword: 'Reset password',
+            newPassword: 'New password',
+            confirmPassword: 'Confirm password',
+            sendResetLink: 'Send reset link',
+            resetPasswordButton: 'Change password',
+            backToLogin: 'Back to sign in',
+            resetEmailSent: 'If an account with this email exists, we have sent you a password reset link.',
+            passwordUpdated: 'Your password has been successfully changed. You can now sign in.',
+            passwordMismatch: 'Passwords do not match.',
+            passwordMinLength: 'Password must contain at least 6 characters.',
+            enterEmail: 'Enter your email.',
+            enterPassword: 'Enter your new password.',
+            loading: 'Loading...',
+            loginButton: 'Sign in',
+            registerButton: 'Create account',
+            createAccount: 'Create account',
+            alreadyHaveAccount: 'I already have an account'
         }
     }
 };

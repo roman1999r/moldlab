@@ -441,6 +441,9 @@
 import { useLocation } from 'react-router-dom';
 
 import { trackPageView } from './lib/analytics';
+
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { useEffect, useState,useRef } from 'react';
 import {
     Routes,
@@ -951,6 +954,16 @@ export default function App() {
                     element={
                         <Auth />
                     }
+                />
+
+                <Route
+                    path="/reset-password"
+                    element={<ResetPassword />}
+                />
+
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPassword />}
                 />
 
                 <Route

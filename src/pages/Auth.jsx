@@ -136,11 +136,13 @@
 
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import {useLanguage} from "../context/LanguageContext.jsx";
 
 export default function Auth() {
     const navigate = useNavigate();
 
+    const {t} = useLanguage();
     const [mode, setMode] = useState('login');
 
     const [email, setEmail] = useState('');
@@ -247,15 +249,15 @@ export default function Auth() {
 
                     <h1>
                         {mode === 'login'
-                            ? 'Вхід'
-                            : 'Створити акаунт'}
+                            ? t.auth.login
+                            : t.auth.createAccount}
                     </h1>
 
                     {mode === 'register' && (
                         <input
                             required
                             type="text"
-                            placeholder="Ваше ім'я"
+                            placeholder={t.auth.name}
                             value={name}
                             onChange={e =>
                                 setName(e.target.value)
@@ -266,7 +268,7 @@ export default function Auth() {
                     <input
                         required
                         type="email"
-                        placeholder="Email"
+                        placeholder={t.auth.email}
                         value={email}
                         onChange={e =>
                             setEmail(e.target.value)
@@ -276,13 +278,22 @@ export default function Auth() {
                     <input
                         required
                         type="password"
-                        placeholder="Пароль"
+                        placeholder={t.auth.password}
                         minLength={6}
                         value={password}
                         onChange={e =>
                             setPassword(e.target.value)
                         }
                     />
+
+                    {mode === 'login' && (
+                        <Link
+                            to="/forgot-password"
+                            className="auth-forgot-password"
+                        >
+                            {t.auth.forgotPassword}
+                        </Link>
+                    )}
 
                     {message && (
                         <div className="notice">
@@ -296,10 +307,10 @@ export default function Auth() {
                         disabled={loading}
                     >
                         {loading
-                            ? 'Завантаження...'
+                            ? t.auth.loading
                             : mode === 'login'
-                                ? 'Увійти'
-                                : 'Зареєструватися'}
+                                ? t.auth.login
+                                : t.auth.registerButton}
                     </button>
 
                     <button
@@ -314,8 +325,8 @@ export default function Auth() {
                         }
                     >
                         {mode === 'login'
-                            ? 'Створити акаунт'
-                            : 'У мене вже є акаунт'}
+                            ? t.auth.createAccount
+                            : t.auth.alreadyHaveAccount}
                     </button>
 
                 </form>
