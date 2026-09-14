@@ -25,16 +25,22 @@ export default function ForgotPassword() {
         setLoading(true);
 
         try {
+            /*
+             * IMPORTANT:
+             * We use a query/hash-compatible URL for HashRouter.
+             *
+             * Example:
+             * https://site.com/#/reset-password
+             */
             const redirectTo =
                 `${window.location.origin}${window.location.pathname}#/reset-password`;
 
-            const { error } =
-                await supabase.auth.resetPasswordForEmail(
-                    email.trim(),
-                    {
-                        redirectTo
-                    }
-                );
+            const { error } = await supabase.auth.resetPasswordForEmail(
+                email.trim(),
+                {
+                    redirectTo,
+                }
+            );
 
             if (error) {
                 throw error;
@@ -43,14 +49,9 @@ export default function ForgotPassword() {
             setSuccess(true);
             setMessage(t.auth.resetEmailSent);
         } catch (error) {
-            console.error(
-                'FORGOT PASSWORD ERROR:',
-                error
-            );
+            console.error('FORGOT PASSWORD ERROR:', error);
 
-            setMessage(
-                error?.message || t.auth.error
-            );
+            setMessage(t.auth.error);
         } finally {
             setLoading(false);
         }
@@ -59,17 +60,10 @@ export default function ForgotPassword() {
     return (
         <main className="page">
             <div className="container auth">
-                <form
-                    className="auth-card"
-                    onSubmit={handleSubmit}
-                >
-                    <span className="eyebrow">
-                        MOLDLAB ACCOUNT
-                    </span>
+                <form className="auth-card" onSubmit={handleSubmit}>
+                    <span className="eyebrow">MOLDLAB ACCOUNT</span>
 
-                    <h1>
-                        {t.auth.forgotPassword}
-                    </h1>
+                    <h1>{t.auth.forgotPassword}</h1>
 
                     {!success && (
                         <>
@@ -78,9 +72,7 @@ export default function ForgotPassword() {
                                 type="email"
                                 placeholder={t.auth.email}
                                 value={email}
-                                onChange={e =>
-                                    setEmail(e.target.value)
-                                }
+                                onChange={(e) => setEmail(e.target.value)}
                             />
 
                             {message && (

@@ -237,7 +237,8 @@ export const translations = {
             registerButton: 'Зареєструватися',
             createAccount: 'Створити акаунт',
             alreadyHaveAccount: 'У мене вже є акаунт',
-            error: 'Сталася помилка.'
+            error: 'Сталася помилка.',
+            invalidResetLink: 'Посилання для відновлення пароля недійсне або вже використане.',
         }
     },
     pl: {
@@ -475,7 +476,8 @@ export const translations = {
             loginButton: 'Zaloguj się',
             registerButton: 'Zarejestruj się',
             createAccount: 'Utwórz konto',
-            alreadyHaveAccount: 'Mam już konto'
+            alreadyHaveAccount: 'Mam już konto',
+            invalidResetLink: 'Link do resetowania hasła jest nieprawidłowy lub został już wykorzystany.',
         }
     },
     en: {
@@ -712,7 +714,8 @@ export const translations = {
             loginButton: 'Sign in',
             registerButton: 'Create account',
             createAccount: 'Create account',
-            alreadyHaveAccount: 'I already have an account'
+            alreadyHaveAccount: 'I already have an account',
+            invalidResetLink: 'The password reset link is invalid or has already been used.',
         }
     }
 };

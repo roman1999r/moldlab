@@ -12,30 +12,115 @@ export default function ResetPassword() {
 
     const [loading, setLoading] = useState(false);
     const [checkingSession, setCheckingSession] = useState(true);
+
     const [message, setMessage] = useState('');
     const [success, setSuccess] = useState(false);
+    const [ready, setReady] = useState(false);
 
     useEffect(() => {
         let mounted = true;
 
-        async function checkRecoverySession() {
-            const {
-                data: { session }
-            } = await supabase.auth.getSession();
+        async function prepareRecoverySession() {
+            try {
+                /*
+                 * With PKCE Supabase sends:
+                 *
+                 * ?code=XXXXXXXX
+                 *
+                 * We must exchange that code for a session.
+                 */
+                const params = new URLSearchParams(window.location.search);
+                const code = params.get('code');
 
-            if (!mounted) return;
+                if (code) {
+                    const { error } =
+                        await supabase.auth.exchangeCodeForSession(code);
 
-            if (!session) {
-                setMessage(t.auth.resetEmailSent);
+                    if (error) {
+                        console.error(
+                            'EXCHANGE RECOVERY CODE ERROR:',
+                            error
+                        );
+
+                        if (mounted) {
+                            setMessage(t.auth.invalidResetLink);
+                            setCheckingSession(false);
+                        }
+
+                        return;
+                    }
+
+                    /*
+                     * Remove ?code=... from the URL.
+                     */
+                    window.history.replaceState(
+                        {},
+                        document.title,
+                        window.location.pathname + '#/reset-password'
+                    );
+
+                    if (mounted) {
+                        setReady(true);
+                        setCheckingSession(false);
+                    }
+
+                    return;
+                }
+
+                /*
+                 * The Supabase client may already have created
+                 * the recovery session.
+                 */
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+
+                if (!mounted) return;
+
+                if (session) {
+                    setReady(true);
+                } else {
+                    setMessage(t.auth.invalidResetLink);
+                }
+
+                setCheckingSession(false);
+            } catch (error) {
+                console.error(
+                    'PREPARE RECOVERY SESSION ERROR:',
+                    error
+                );
+
+                if (mounted) {
+                    setMessage(t.auth.invalidResetLink);
+                    setCheckingSession(false);
+                }
             }
-
-            setCheckingSession(false);
         }
 
-        checkRecoverySession();
+        prepareRecoverySession();
+
+        /*
+         * Also listen for PASSWORD_RECOVERY.
+         */
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+                if (!mounted) return;
+
+                if (
+                    event === 'PASSWORD_RECOVERY' &&
+                    session
+                ) {
+                    setReady(true);
+                    setCheckingSession(false);
+                }
+            }
+        );
 
         return () => {
             mounted = false;
+            subscription.unsubscribe();
         };
     }, [t]);
 
@@ -58,8 +143,21 @@ export default function ResetPassword() {
         setLoading(true);
 
         try {
+            /*
+             * At this point Supabase must have
+             * a valid recovery session.
+             */
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session) {
+                setMessage(t.auth.invalidResetLink);
+                return;
+            }
+
             const { error } = await supabase.auth.updateUser({
-                password
+                password,
             });
 
             if (error) {
@@ -70,14 +168,17 @@ export default function ResetPassword() {
             setMessage(t.auth.passwordUpdated);
 
             setTimeout(() => {
-                navigate('/login', { replace: true });
+                navigate('/login', {
+                    replace: true,
+                });
             }, 1500);
         } catch (error) {
-            console.error('RESET PASSWORD ERROR:', error);
-
-            setMessage(
-                error?.message || t.auth.error
+            console.error(
+                'RESET PASSWORD ERROR:',
+                error
             );
+
+            setMessage(t.auth.error);
         } finally {
             setLoading(false);
         }
@@ -104,23 +205,36 @@ export default function ResetPassword() {
                     className="auth-card"
                     onSubmit={handleSubmit}
                 >
-                    <span className="eyebrow">
-                        MOLDLAB ACCOUNT
-                    </span>
+          <span className="eyebrow">
+            MOLDLAB ACCOUNT
+          </span>
 
-                    <h1>
-                        {t.auth.resetPassword}
-                    </h1>
+                    <h1>{t.auth.resetPassword}</h1>
 
-                    {!success && (
+                    {!ready && !success && (
+                        <>
+                            <div className="notice">
+                                {message}
+                            </div>
+
+                            <Link
+                                to="/forgot-password"
+                                className="button primary full"
+                            >
+                                {t.auth.forgotPassword}
+                            </Link>
+                        </>
+                    )}
+
+                    {ready && !success && (
                         <>
                             <input
                                 required
                                 type="password"
-                                placeholder={t.auth.newPassword}
                                 minLength={6}
+                                placeholder={t.auth.newPassword}
                                 value={password}
-                                onChange={e =>
+                                onChange={(e) =>
                                     setPassword(e.target.value)
                                 }
                             />
@@ -128,10 +242,10 @@ export default function ResetPassword() {
                             <input
                                 required
                                 type="password"
-                                placeholder={t.auth.confirmPassword}
                                 minLength={6}
+                                placeholder={t.auth.confirmPassword}
                                 value={confirmPassword}
-                                onChange={e =>
+                                onChange={(e) =>
                                     setConfirmPassword(e.target.value)
                                 }
                             />
