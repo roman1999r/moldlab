@@ -259,6 +259,610 @@
 // }
 
 
+
+///////////////NORM///
+// import {
+//     ArrowRight,
+//     Box,
+//     Sparkles
+// } from 'lucide-react';
+//
+// import {
+//     useEffect,
+//     useMemo,
+//     useState
+// } from 'react';
+// import { Link } from 'react-router-dom';
+// import ProductCard from '../components/ProductCard';
+// import CustomForm from '../components/CustomForm';
+//
+// import {localizeProduct} from '../data/products';
+// import {supabase} from '../lib/supabase';
+//
+// import {useLanguage} from '../context/LanguageContext';
+//
+//
+// export default function Home({products, onAdd}) {
+//
+//     const {
+//         language,
+//         t
+//     } = useLanguage();
+//
+//
+//
+//
+//     /*
+//     |--------------------------------------------------------------------------
+//     | CATEGORIES
+//     |--------------------------------------------------------------------------
+//     */
+//
+//     const [categories, setCategories] = useState([]);
+//
+//     const [selectedCategory, setSelectedCategory] =
+//         useState('all');
+//
+//
+//     /*
+//     |--------------------------------------------------------------------------
+//     | LOAD ACTIVE CATEGORIES
+//     |--------------------------------------------------------------------------
+//     */
+//
+//     useEffect(() => {
+//
+//         async function loadCategories() {
+//
+//             if (!supabase) return;
+//
+//
+//             const {
+//                 data,
+//                 error
+//             } = await supabase
+//                 .from('categories')
+//                 .select(`
+//                                 id,
+//                                 name,
+//                                 slug,
+//                                 active
+//                 `)
+//                         .eq('active', true)
+//                         .order('name');
+//
+//
+//             if (error) {
+//
+//                 console.error(
+//                     'LOAD HOME CATEGORIES ERROR:',
+//                     error
+//                 );
+//
+//                 return;
+//             }
+//
+//
+//             setCategories(data || []);
+//         }
+//
+//
+//         loadCategories();
+//
+//     }, []);
+//
+//
+//     /*
+//     |--------------------------------------------------------------------------
+//     | LOCALIZED PRODUCTS
+//     |--------------------------------------------------------------------------
+//     */
+//
+//     const normalized = useMemo(() => {
+//
+//         return (products || []).map(product =>
+//             localizeProduct(
+//                 product,
+//                 language
+//             )
+//         );
+//
+//     }, [products, language]);
+//
+//
+//     /*
+//     |--------------------------------------------------------------------------
+//     | FILTER PRODUCTS
+//     |--------------------------------------------------------------------------
+//     */
+//
+//     const list = useMemo(() => {
+//
+//         if (selectedCategory === 'all') {
+//             return normalized;
+//         }
+//
+//
+//         return normalized.filter(
+//             product =>
+//                 product.category_id ===
+//                 selectedCategory
+//         );
+//
+//     }, [
+//         normalized,
+//         selectedCategory
+//     ]);
+//
+//
+//     /*
+//     |--------------------------------------------------------------------------
+//     | SCROLL
+//     |--------------------------------------------------------------------------
+//     */
+//
+//     const scrollTo = (id) => {
+//
+//         document
+//             .getElementById(id)
+//             ?.scrollIntoView({
+//                 behavior: 'smooth'
+//             });
+//
+//     };
+//
+//
+//     /*
+//     |--------------------------------------------------------------------------
+//     | HERO PRODUCT
+//     |--------------------------------------------------------------------------
+//     */
+//
+//     const heroProduct =
+//         normalized[0];
+//
+//
+//     /*
+//     |--------------------------------------------------------------------------
+//     | RENDER
+//     |--------------------------------------------------------------------------
+//     */
+//
+//     return (
+//
+//         <main>
+//
+//
+//             {/* ============================================================
+//                 HERO
+//             ============================================================ */}
+//
+//             <section className="hero" id='hero'>
+//
+//                 <div className="container hero-grid">
+//
+//                     <div>
+//
+//                         <span className="eyebrow">
+//
+//                             <Sparkles size={15} />
+//
+//                             {t.hero.eyebrow}
+//
+//                         </span>
+//
+//
+//                         <h1>
+//                             {t.hero.title}
+//                         </h1>
+//
+//
+//                         <p>
+//                             {t.hero.text}
+//                         </p>
+//
+//
+//                         <div className="actions">
+//
+//                             <a
+//                                 className="button primary"
+//                                 href="#catalog"
+//                                 onClick={(e) => {
+//
+//                                     e.preventDefault();
+//
+//                                     scrollTo('catalog');
+//
+//                                 }}
+//                             >
+//
+//                                 {t.hero.catalog}
+//
+//                                 <ArrowRight size={18} />
+//
+//                             </a>
+//
+//
+//                             <a
+//                                 className="button secondary"
+//                                 href="#custom"
+//                                 onClick={(e) => {
+//
+//                                     e.preventDefault();
+//
+//                                     scrollTo('custom');
+//
+//                                 }}
+//                             >
+//
+//                                 {t.hero.custom}
+//
+//                             </a>
+//
+//                         </div>
+//
+//
+//                         <div className="trust">
+//
+//                             {t.hero.trust}
+//
+//                         </div>
+//
+//                     </div>
+//
+//
+//                     <div className="hero-product">
+//
+//                         {heroProduct && (
+//
+//                             <ProductCard
+//                                 product={heroProduct}
+//                                 onAdd={onAdd}
+//                             />
+//
+//                         )}
+//
+//                     </div>
+//
+//                 </div>
+//
+//             </section>
+//
+//
+//             {/* ============================================================
+//                 CATALOG
+//             ============================================================ */}
+//
+//             <section
+//                 id="catalog"
+//                 className="section"
+//             >
+//
+//                 <div className="container">
+//
+//
+//                     {/* SECTION HEADER */}
+//
+//                     <div className="section-head">
+//
+//                         <div>
+//
+//                             <span className="eyebrow">
+//
+//                                 {t.catalog.eyebrow}
+//
+//                             </span>
+//
+//
+//                             <h2>
+//
+//                                 {t.catalog.title}
+//
+//                             </h2>
+//
+//                         </div>
+//
+//
+//                         <p>
+//
+//                             {t.catalog.text}
+//
+//                         </p>
+//
+//                     </div>
+//
+//
+//                     {/* ====================================================
+//                         CATEGORY FILTERS
+//                     ==================================================== */}
+//
+//                     <div className="filters">
+//
+//                         {/* ВСІ */}
+//
+//                         <button
+//                             type="button"
+//                             className={
+//                                 selectedCategory === 'all'
+//                                     ? 'active'
+//                                     : ''
+//                             }
+//                             onClick={() =>
+//                                 setSelectedCategory('all')
+//                             }
+//                         >
+//                             {language === 'pl'
+//                                 ? 'Wszystkie'
+//                                 : language === 'en'
+//                                     ? 'All'
+//                                     : 'Всі'
+//                             }
+//                         </button>
+//
+//
+//                         {/* КАТЕГОРІЇ З БАЗИ */}
+//
+//                         {categories.map(category => (
+//                             <button
+//                                 type="button"
+//                                 key={category.id}
+//                                 className={
+//                                     selectedCategory === category.id
+//                                         ? 'active'
+//                                         : ''
+//                                 }
+//                                 onClick={() =>
+//                                     setSelectedCategory(category.id)
+//                                 }
+//                             >
+//                                 {category.name}
+//                             </button>
+//                         ))}
+//
+//                     </div>
+//
+//
+//                     {/*/!* ====================================================*/}
+//                     {/*    PRODUCTS*/}
+//                     {/*==================================================== *!/*/}
+//
+//                     {/*<div className="grid">*/}
+//
+//                     {/*    {list.map(product => (*/}
+//
+//                     {/*        <ProductCard*/}
+//                     {/*            key={product.id}*/}
+//                     {/*            product={product}*/}
+//                     {/*            onAdd={onAdd}*/}
+//                     {/*        />*/}
+//
+//                     {/*    ))}*/}
+//
+//                     {/*</div>*/}
+//
+//
+//
+//
+//
+//                     {/* ===================================================== FEATURED PRODUCTS ===================================================== */}
+//                     <section id="featured" className="section" >
+//                         <div className="container"> <div className="section-head">
+//                             <div>
+//                                 <span className="eyebrow"> Featured </span>
+//                                 <h2> {t.catalog.title} </h2>
+//                             </div>
+//                             <div>
+//                                 <p> {t.catalog.text} </p>
+//                                 <Link className="button secondary" to="/catalog" > {t.hero.catalog}
+//                                     <ArrowRight size={18} />
+//                                 </Link>
+//                             </div>
+//                         </div>
+//                             {featuredProducts.length > 0 ? ( <div className="grid"> {featuredProducts.map(product => ( <ProductCard key={product.id} product={product} onAdd={onAdd} /> ))} </div> ) : ( <div className="empty-state"> <p className="muted"> {language === 'uk' ? 'Featured товарів поки немає.' : language === 'pl' ? 'Brak wyróżnionych produktów.' : 'There are no featured products yet.' } </p> </div> )} </div> </section>
+//
+//
+//                     {/* NO PRODUCTS */}
+//
+//                     {list.length === 0 && (
+//
+//                         <div className="empty-state">
+//
+//                             <p className="muted">
+//
+//                                 {language === 'uk'
+//                                     ? 'У цій категорії товарів поки немає.'
+//                                     : language === 'pl'
+//                                         ? 'Brak produktów w tej kategorii.'
+//                                         : 'There are no products in this category yet.'
+//                                 }
+//
+//                             </p>
+//
+//                         </div>
+//
+//                     )}
+//
+//                 </div>
+//
+//             </section>
+//
+//
+//             {/* ============================================================
+//                 HOW IT WORKS
+//             ============================================================ */}
+//
+//             <section
+//                 id="how"
+//                 className="section dark"
+//             >
+//
+//                 <div className="container">
+//
+//                     <span className="eyebrow">
+//
+//                         {t.process.eyebrow}
+//
+//                     </span>
+//
+//
+//                     <h2>
+//
+//                         {t.process.title}
+//
+//                     </h2>
+//
+//
+//                     <div className="steps">
+//
+//                         {t.process.steps.map(step => (
+//
+//                             <div
+//                                 className="step"
+//                                 key={step[0]}
+//                             >
+//
+//                                 <span>
+//                                     {step[0]}
+//                                 </span>
+//
+//
+//                                 <h3>
+//                                     {step[1]}
+//                                 </h3>
+//
+//
+//                                 <p>
+//                                     {step[2]}
+//                                 </p>
+//
+//                             </div>
+//
+//                         ))}
+//
+//                     </div>
+//
+//                 </div>
+//
+//             </section>
+//
+//
+//             {/* ============================================================
+//                 CUSTOM ORDER
+//             ============================================================ */}
+//
+//             <section
+//                 id="custom"
+//                 className="section custom"
+//             >
+//
+//                 <div className="container custom-grid">
+//
+//                     <div>
+//
+//                         <span className="eyebrow">
+//
+//                             {t.custom.eyebrow}
+//
+//                         </span>
+//
+//
+//                         <h2>
+//
+//                             {t.custom.title}
+//
+//                         </h2>
+//
+//
+//                         <p>
+//
+//                             {t.custom.text}
+//
+//                         </p>
+//
+//
+//                         <div className="custom-card">
+//
+//                             <Box size={36} />
+//
+//
+//                             <h3>
+//
+//                                 {t.custom.what}
+//
+//                             </h3>
+//
+//
+//                             <ul>
+//
+//                                 {t.custom.bullets.map(item => (
+//
+//                                     <li key={item}>
+//
+//                                         {item}
+//
+//                                     </li>
+//
+//                                 ))}
+//
+//                             </ul>
+//
+//                         </div>
+//
+//                     </div>
+//
+//
+//                     <CustomForm />
+//
+//                 </div>
+//
+//             </section>
+//
+//
+//             {/* ============================================================
+//                 ABOUT
+//             ============================================================ */}
+//
+//             <section
+//                 id="about"
+//                 className="section about"
+//             >
+//
+//                 <div className="container">
+//
+//                     <span className="eyebrow">
+//
+//                         {t.about.eyebrow}
+//
+//                     </span>
+//
+//
+//                     <h2>
+//
+//                         {t.about.title}
+//
+//                     </h2>
+//
+//
+//                     <p>
+//
+//                         {t.about.text}
+//
+//                     </p>
+//
+//                 </div>
+//
+//             </section>
+//
+//         </main>
+//
+//     );
+//
+// }
+
+
+
+
+
 import {
     ArrowRight,
     Box,
@@ -266,21 +870,26 @@ import {
 } from 'lucide-react';
 
 import {
-    useEffect,
-    useMemo,
-    useState
+    useMemo
 } from 'react';
+
+import {
+    Link
+} from 'react-router-dom';
 
 import ProductCard from '../components/ProductCard';
 import CustomForm from '../components/CustomForm';
 
-import {localizeProduct} from '../data/products';
-import {supabase} from '../lib/supabase';
+import {
+    localizeProduct
+} from '../data/products';
 
-import {useLanguage} from '../context/LanguageContext';
+import {
+    useLanguage
+} from '../context/LanguageContext';
 
 
-export default function Home({products, onAdd}) {
+export default function Home({ products, onAdd }) {
 
     const {
         language,
@@ -289,70 +898,10 @@ export default function Home({products, onAdd}) {
 
 
     /*
-    |--------------------------------------------------------------------------
-    | CATEGORIES
-    |--------------------------------------------------------------------------
-    */
-
-    const [categories, setCategories] = useState([]);
-
-    const [selectedCategory, setSelectedCategory] =
-        useState('all');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOAD ACTIVE CATEGORIES
-    |--------------------------------------------------------------------------
-    */
-
-    useEffect(() => {
-
-        async function loadCategories() {
-
-            if (!supabase) return;
-
-
-            const {
-                data,
-                error
-            } = await supabase
-                .from('categories')
-                .select(`
-                                id,
-                                name,
-                                slug,
-                                active
-                `)
-                        .eq('active', true)
-                        .order('name');
-
-
-            if (error) {
-
-                console.error(
-                    'LOAD HOME CATEGORIES ERROR:',
-                    error
-                );
-
-                return;
-            }
-
-
-            setCategories(data || []);
-        }
-
-
-        loadCategories();
-
-    }, []);
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOCALIZED PRODUCTS
-    |--------------------------------------------------------------------------
-    */
+     * ---------------------------------------------------------
+     * LOCALIZED PRODUCTS
+     * ---------------------------------------------------------
+     */
 
     const normalized = useMemo(() => {
 
@@ -363,41 +912,55 @@ export default function Home({products, onAdd}) {
             )
         );
 
-    }, [products, language]);
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | FILTER PRODUCTS
-    |--------------------------------------------------------------------------
-    */
-
-    const list = useMemo(() => {
-
-        if (selectedCategory === 'all') {
-            return normalized;
-        }
-
-
-        return normalized.filter(
-            product =>
-                product.category_id ===
-                selectedCategory
-        );
-
     }, [
-        normalized,
-        selectedCategory
+        products,
+        language
     ]);
 
 
     /*
-    |--------------------------------------------------------------------------
-    | SCROLL
-    |--------------------------------------------------------------------------
-    */
+     * ---------------------------------------------------------
+     * FEATURED PRODUCTS
+     * ---------------------------------------------------------
+     *
+     * На головній показуємо тільки товари,
+     * у яких featured === true.
+     *
+     * Максимум 8 товарів.
+     */
 
-    const scrollTo = (id) => {
+    const featuredProducts = useMemo(() => {
+
+        return normalized
+            .filter(
+                product =>
+                    product.featured === true
+            )
+            .slice(0, 6);
+
+    }, [normalized]);
+
+
+    /*
+     * ---------------------------------------------------------
+     * HERO PRODUCT
+     * ---------------------------------------------------------
+     *
+     * Перший featured товар використовується
+     * у Hero.
+     */
+
+    const heroProduct =
+        featuredProducts[0];
+
+
+    /*
+     * ---------------------------------------------------------
+     * SCROLL
+     * ---------------------------------------------------------
+     */
+
+    function scrollTo(id) {
 
         document
             .getElementById(id)
@@ -405,35 +968,26 @@ export default function Home({products, onAdd}) {
                 behavior: 'smooth'
             });
 
-    };
+    }
 
 
     /*
-    |--------------------------------------------------------------------------
-    | HERO PRODUCT
-    |--------------------------------------------------------------------------
-    */
-
-    const heroProduct =
-        normalized[0];
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | RENDER
-    |--------------------------------------------------------------------------
-    */
+     * ---------------------------------------------------------
+     * RENDER
+     * ---------------------------------------------------------
+     */
 
     return (
-
         <main>
 
-
-            {/* ============================================================
+            {/* =====================================================
                 HERO
-            ============================================================ */}
+            ===================================================== */}
 
-            <section className="hero" id='hero'>
+            <section
+                className="hero"
+                id="hero"
+            >
 
                 <div className="container hero-grid">
 
@@ -460,23 +1014,14 @@ export default function Home({products, onAdd}) {
 
                         <div className="actions">
 
-                            <a
+                            <Link
                                 className="button primary"
-                                href="#catalog"
-                                onClick={(e) => {
-
-                                    e.preventDefault();
-
-                                    scrollTo('catalog');
-
-                                }}
+                                to="/catalog"
                             >
-
                                 {t.hero.catalog}
 
                                 <ArrowRight size={18} />
-
-                            </a>
+                            </Link>
 
 
                             <a
@@ -490,18 +1035,14 @@ export default function Home({products, onAdd}) {
 
                                 }}
                             >
-
                                 {t.hero.custom}
-
                             </a>
 
                         </div>
 
 
                         <div className="trust">
-
                             {t.hero.trust}
-
                         </div>
 
                     </div>
@@ -510,12 +1051,10 @@ export default function Home({products, onAdd}) {
                     <div className="hero-product">
 
                         {heroProduct && (
-
                             <ProductCard
                                 product={heroProduct}
                                 onAdd={onAdd}
                             />
-
                         )}
 
                     </div>
@@ -525,131 +1064,79 @@ export default function Home({products, onAdd}) {
             </section>
 
 
-            {/* ============================================================
-                CATALOG
-            ============================================================ */}
+            {/* =====================================================
+                FEATURED PRODUCTS
+            ===================================================== */}
 
             <section
-                id="catalog"
+                id="featured"
                 className="section"
             >
 
                 <div className="container">
-
-
-                    {/* SECTION HEADER */}
 
                     <div className="section-head">
 
                         <div>
 
                             <span className="eyebrow">
-
-                                {t.catalog.eyebrow}
-
+                                Featured
                             </span>
 
-
                             <h2>
-
                                 {t.catalog.title}
-
                             </h2>
 
                         </div>
 
 
-                        <p>
+                        <div>
 
-                            {t.catalog.text}
+                            <p>
+                                {t.catalog.text}
+                            </p>
 
-                        </p>
-
-                    </div>
-
-
-                    {/* ====================================================
-                        CATEGORY FILTERS
-                    ==================================================== */}
-
-                    <div className="filters">
-
-                        {/* ВСІ */}
-
-                        <button
-                            type="button"
-                            className={
-                                selectedCategory === 'all'
-                                    ? 'active'
-                                    : ''
-                            }
-                            onClick={() =>
-                                setSelectedCategory('all')
-                            }
-                        >
-                            {language === 'pl'
-                                ? 'Wszystkie'
-                                : language === 'en'
-                                    ? 'All'
-                                    : 'Всі'
-                            }
-                        </button>
-
-
-                        {/* КАТЕГОРІЇ З БАЗИ */}
-
-                        {categories.map(category => (
-                            <button
-                                type="button"
-                                key={category.id}
-                                className={
-                                    selectedCategory === category.id
-                                        ? 'active'
-                                        : ''
-                                }
-                                onClick={() =>
-                                    setSelectedCategory(category.id)
-                                }
+                            <Link
+                                className="button secondary"
+                                to="/catalog"
                             >
-                                {category.name}
-                            </button>
-                        ))}
+                                {t.hero.catalog}
+
+                                <ArrowRight size={18} />
+                            </Link>
+
+                        </div>
 
                     </div>
 
 
-                    {/* ====================================================
-                        PRODUCTS
-                    ==================================================== */}
+                    {featuredProducts.length > 0 ? (
 
-                    <div className="grid">
+                        <div className="grid catalog-grid">
 
-                        {list.map(product => (
+                            {featuredProducts.map(product => (
 
-                            <ProductCard
-                                key={product.id}
-                                product={product}
-                                onAdd={onAdd}
-                            />
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onAdd={onAdd}
+                                />
 
-                        ))}
+                            ))}
 
-                    </div>
+                        </div>
 
-
-                    {/* NO PRODUCTS */}
-
-                    {list.length === 0 && (
+                    ) : (
 
                         <div className="empty-state">
 
                             <p className="muted">
 
                                 {language === 'uk'
-                                    ? 'У цій категорії товарів поки немає.'
+                                    ? 'Featured товарів поки немає.'
                                     : language === 'pl'
-                                        ? 'Brak produktów w tej kategorii.'
-                                        : 'There are no products in this category yet.'
+                                        ? 'Brak wyróżnionych produktów.'
+                                        : 'There are no featured products yet.'
                                 }
 
                             </p>
@@ -663,9 +1150,9 @@ export default function Home({products, onAdd}) {
             </section>
 
 
-            {/* ============================================================
+            {/* =====================================================
                 HOW IT WORKS
-            ============================================================ */}
+            ===================================================== */}
 
             <section
                 id="how"
@@ -675,16 +1162,12 @@ export default function Home({products, onAdd}) {
                 <div className="container">
 
                     <span className="eyebrow">
-
                         {t.process.eyebrow}
-
                     </span>
 
 
                     <h2>
-
                         {t.process.title}
-
                     </h2>
 
 
@@ -722,9 +1205,9 @@ export default function Home({products, onAdd}) {
             </section>
 
 
-            {/* ============================================================
+            {/* =====================================================
                 CUSTOM ORDER
-            ============================================================ */}
+            ===================================================== */}
 
             <section
                 id="custom"
@@ -736,23 +1219,17 @@ export default function Home({products, onAdd}) {
                     <div>
 
                         <span className="eyebrow">
-
                             {t.custom.eyebrow}
-
                         </span>
 
 
                         <h2>
-
                             {t.custom.title}
-
                         </h2>
 
 
                         <p>
-
                             {t.custom.text}
-
                         </p>
 
 
@@ -762,9 +1239,7 @@ export default function Home({products, onAdd}) {
 
 
                             <h3>
-
                                 {t.custom.what}
-
                             </h3>
 
 
@@ -773,9 +1248,7 @@ export default function Home({products, onAdd}) {
                                 {t.custom.bullets.map(item => (
 
                                     <li key={item}>
-
                                         {item}
-
                                     </li>
 
                                 ))}
@@ -794,9 +1267,9 @@ export default function Home({products, onAdd}) {
             </section>
 
 
-            {/* ============================================================
+            {/* =====================================================
                 ABOUT
-            ============================================================ */}
+            ===================================================== */}
 
             <section
                 id="about"
@@ -806,23 +1279,17 @@ export default function Home({products, onAdd}) {
                 <div className="container">
 
                     <span className="eyebrow">
-
                         {t.about.eyebrow}
-
                     </span>
 
 
                     <h2>
-
                         {t.about.title}
-
                     </h2>
 
 
                     <p>
-
                         {t.about.text}
-
                     </p>
 
                 </div>
@@ -830,7 +1297,6 @@ export default function Home({products, onAdd}) {
             </section>
 
         </main>
-
     );
-
 }
+

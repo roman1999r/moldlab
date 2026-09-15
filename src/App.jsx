@@ -455,6 +455,7 @@ import Header from './components/Header';
 import Cart from './components/Cart';
 
 import Home from './pages/Home';
+import Catalog from './pages/Catalog';
 import Product from './pages/Product';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
@@ -622,41 +623,51 @@ export default function App() {
         const navigate = useNavigate();
 
         useEffect(() => {
-            const params = new URLSearchParams(
-                window.location.search
-            );
+            let mounted = true;
 
-            const code = params.get('code');
+            async function handleRecovery() {
+                const url = new URL(window.location.href);
+                const code = url.searchParams.get('code');
 
-            if (!code) return;
-
-            async function exchangeCode() {
-                const { error } =
-                    await supabase.auth.exchangeCodeForSession(
-                        code
-                    );
-
-                if (error) {
-                    console.error(
-                        'AUTH RECOVERY ERROR:',
-                        error
-                    );
-
+                if (!code) {
                     return;
                 }
 
-                window.history.replaceState(
-                    {},
-                    document.title,
-                    window.location.pathname
-                );
+                try {
+                    /*
+                     * НЕ обмінюємо code тут.
+                     *
+                     * ResetPassword.jsx зробить exchangeCodeForSession(),
+                     * тому що саме він відповідає за recovery.
+                     */
 
-                navigate('/reset-password', {
-                    replace: true,
-                });
+                    if (!mounted) {
+                        return;
+                    }
+
+                    /*
+                     * HashRouter повинен отримати правильний маршрут.
+                     */
+                    navigate('/reset-password', { replace: true });
+                } catch (error) {
+                    console.error(
+                        'AUTH RECOVERY ROUTING ERROR:',
+                        error
+                    );
+
+                    if (mounted) {
+                        navigate('/forgot-password', {
+                            replace: true,
+                        });
+                    }
+                }
             }
 
-            exchangeCode();
+            handleRecovery();
+
+            return () => {
+                mounted = false;
+            };
         }, [navigate]);
 
         return null;
@@ -989,6 +1000,16 @@ export default function App() {
                     path="/product/:id"
                     element={
                         <Product
+                            products={products}
+                            onAdd={addToCart}
+                        />
+                    }
+                />
+
+                <Route
+                    path="/catalog"
+                    element={
+                        <Catalog
                             products={products}
                             onAdd={addToCart}
                         />

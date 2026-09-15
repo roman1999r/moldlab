@@ -1,203 +1,214 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function ResetPassword() {
-    const { t } = useLanguage();
     const navigate = useNavigate();
+    const { language } = useLanguage();
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-
-    const [loading, setLoading] = useState(false);
-    const [checkingSession, setCheckingSession] = useState(true);
-
-    const [ready, setReady] = useState(false);
-    const [message, setMessage] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
         let mounted = true;
 
-        async function prepareRecoverySession() {
-            if (!supabase) {
-                if (mounted) {
-                    setMessage(t.auth.error);
-                    setCheckingSession(false);
-                }
-
-                return;
-            }
-
+        async function prepareRecovery() {
             try {
+                const url = new URL(window.location.href);
+                const code = url.searchParams.get('code');
+
                 /*
-                 * PKCE recovery:
-                 *
-                 * /moldlab/?code=XXXX
-                 *
-                 * We exchange the code for a Supabase session.
+                 * Supabase PKCE recovery.
+                 * Обмінюємо одноразовий code на recovery session.
                  */
+                if (code) {
+                    const { error: exchangeError } =
+                        await supabase.auth.exchangeCodeForSession(code);
 
-                const params = new URLSearchParams(
-                    window.location.search
-                );
-
-                const code = params.get('code');
-
-                if (!code) {
-                    if (mounted) {
-                        setMessage(
-                            t.auth.invalidResetLink
-                        );
-
-                        setCheckingSession(false);
+                    if (exchangeError) {
+                        throw exchangeError;
                     }
 
-                    return;
-                }
-
-                const { error } =
-                    await supabase.auth.exchangeCodeForSession(
-                        code
+                    /*
+                     * Очищаємо ?code=..., але НЕ ламаємо HashRouter.
+                     */
+                    window.history.replaceState(
+                        {},
+                        document.title,
+                        `${window.location.pathname}${window.location.hash}`
                     );
-
-                if (error) {
-                    console.error(
-                        'RECOVERY CODE ERROR:',
-                        error
-                    );
-
-                    if (mounted) {
-                        setMessage(
-                            t.auth.invalidResetLink
-                        );
-
-                        setCheckingSession(false);
-                    }
-
-                    return;
                 }
 
                 /*
-                 * Remove ?code=... from the URL.
-                 *
-                 * Then switch to HashRouter route.
+                 * Перевіряємо, що recovery session справді є.
                  */
-                window.history.replaceState(
-                    {},
-                    document.title,
-                    window.location.pathname
-                );
+                const {
+                    data: { session },
+                    error: sessionError,
+                } = await supabase.auth.getSession();
 
-                if (mounted) {
-                    setReady(true);
-                    setCheckingSession(false);
+                if (sessionError) {
+                    throw sessionError;
                 }
-            } catch (error) {
-                console.error(
-                    'RECOVERY SESSION ERROR:',
-                    error
-                );
+
+                if (!session) {
+                    throw new Error('Recovery session not found');
+                }
 
                 if (mounted) {
-                    setMessage(
-                        t.auth.invalidResetLink
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error('PASSWORD RECOVERY ERROR:', err);
+
+                if (mounted) {
+                    setError(
+                        language === 'uk'
+                            ? 'Посилання для відновлення пароля недійсне або вже використане.'
+                            : language === 'pl'
+                                ? 'Link do resetowania hasła jest nieprawidłowy lub został już użyty.'
+                                : 'The password reset link is invalid or has already been used.'
                     );
 
-                    setCheckingSession(false);
+                    setLoading(false);
                 }
             }
         }
 
-        prepareRecoverySession();
+        prepareRecovery();
 
         return () => {
             mounted = false;
         };
-    }, [t]);
+    }, [language]);
 
     async function handleSubmit(e) {
         e.preventDefault();
 
-        setMessage('');
-        setSuccess(false);
+        setError('');
 
         if (password.length < 6) {
-            setMessage(
-                t.auth.passwordMinLength
+            setError(
+                language === 'uk'
+                    ? 'Пароль має містити щонайменше 6 символів.'
+                    : language === 'pl'
+                        ? 'Hasło musi mieć co najmniej 6 znaków.'
+                        : 'Password must be at least 6 characters.'
             );
-
             return;
         }
 
         if (password !== confirmPassword) {
-            setMessage(
-                t.auth.passwordMismatch
+            setError(
+                language === 'uk'
+                    ? 'Паролі не збігаються.'
+                    : language === 'pl'
+                        ? 'Hasła nie są takie same.'
+                        : 'Passwords do not match.'
             );
-
             return;
         }
 
-        if (!supabase) {
-            setMessage(t.auth.error);
-            return;
-        }
-
-        setLoading(true);
+        setSaving(true);
 
         try {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-
-            if (!session) {
-                setMessage(
-                    t.auth.invalidResetLink
-                );
-
-                return;
-            }
-
-            const { error } =
+            const { error: updateError } =
                 await supabase.auth.updateUser({
                     password,
                 });
 
-            if (error) {
-                throw error;
+            if (updateError) {
+                throw updateError;
             }
+
+            /*
+             * Після зміни пароля завершуємо recovery session.
+             * Користувач не залишається залогіненим.
+             */
+            await supabase.auth.signOut();
 
             setSuccess(true);
 
-            setMessage(
-                t.auth.passwordUpdated
-            );
-
+            /*
+             * Даємо Supabase завершити signOut,
+             * після чого повертаємо користувача на login.
+             */
             setTimeout(() => {
-                navigate('/login', {
-                    replace: true,
-                });
-            }, 1500);
-        } catch (error) {
-            console.error(
-                'RESET PASSWORD ERROR:',
-                error
-            );
+                navigate('/login', { replace: true });
+            }, 1200);
+        } catch (err) {
+            console.error('PASSWORD UPDATE ERROR:', err);
 
-            setMessage(t.auth.error);
+            setError(
+                err?.message ||
+                (language === 'uk'
+                    ? 'Не вдалося змінити пароль.'
+                    : language === 'pl'
+                        ? 'Nie udało się zmienić hasła.'
+                        : 'Failed to update password.')
+            );
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     }
 
-    if (checkingSession) {
+    if (loading) {
         return (
-            <main className="page">
-                <div className="container auth">
-                    <div className="auth-card">
-                        <div className="notice">
-                            {t.auth.loading}
+            <main className="section">
+                <div className="container">
+                    <div className="auth-page">
+                        <div className="auth-card">
+                            <p>
+                                {language === 'uk'
+                                    ? 'Перевіряємо посилання...'
+                                    : language === 'pl'
+                                        ? 'Sprawdzanie linku...'
+                                        : 'Checking link...'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    if (error && !success) {
+        return (
+            <main className="section">
+                <div className="container">
+                    <div className="auth-page">
+                        <div className="auth-card">
+                            <h1>
+                                {language === 'uk'
+                                    ? 'Відновлення пароля'
+                                    : language === 'pl'
+                                        ? 'Resetowanie hasła'
+                                        : 'Password reset'}
+                            </h1>
+
+                            <p className="auth-error">
+                                {error}
+                            </p>
+
+                            <button
+                                type="button"
+                                className="auth-submit"
+                                onClick={() =>
+                                    navigate('/forgot-password')
+                                }
+                            >
+                                {language === 'uk'
+                                    ? 'Запросити нове посилання'
+                                    : language === 'pl'
+                                        ? 'Poproś o nowy link'
+                                        : 'Request a new link'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -206,101 +217,91 @@ export default function ResetPassword() {
     }
 
     return (
-        <main className="page">
-            <div className="container auth">
-                <form
-                    className="auth-card"
-                    onSubmit={handleSubmit}
-                >
-                    <span className="eyebrow">
-                        MOLDLAB ACCOUNT
-                    </span>
+        <main className="section">
+            <div className="container">
+                <div className="auth-page">
+                    <div className="auth-card">
+                        <h1>
+                            {language === 'uk'
+                                ? 'Новий пароль'
+                                : language === 'pl'
+                                    ? 'Nowe hasło'
+                                    : 'New password'}
+                        </h1>
 
-                    <h1>
-                        {t.auth.resetPassword}
-                    </h1>
+                        {success ? (
+                            <p className="auth-success">
+                                {language === 'uk'
+                                    ? 'Пароль змінено. Перенаправляємо на вхід...'
+                                    : language === 'pl'
+                                        ? 'Hasło zostało zmienione. Przekierowanie...'
+                                        : 'Password changed. Redirecting...'}
+                            </p>
+                        ) : (
+                            <form onSubmit={handleSubmit}>
+                                <label>
+                                    {language === 'uk'
+                                        ? 'Новий пароль'
+                                        : language === 'pl'
+                                            ? 'Nowe hasło'
+                                            : 'New password'}
 
-                    {!ready && !success && (
-                        <>
-                            <div className="notice">
-                                {message}
-                            </div>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) =>
+                                            setPassword(e.target.value)
+                                        }
+                                        autoComplete="new-password"
+                                        required
+                                    />
+                                </label>
 
-                            <Link
-                                to="/forgot-password"
-                                className="button primary full"
-                            >
-                                {t.auth.forgotPassword}
-                            </Link>
-                        </>
-                    )}
+                                <label>
+                                    {language === 'uk'
+                                        ? 'Повторіть пароль'
+                                        : language === 'pl'
+                                            ? 'Powtórz hasło'
+                                            : 'Confirm password'}
 
-                    {ready && !success && (
-                        <>
-                            <input
-                                required
-                                type="password"
-                                minLength={6}
-                                placeholder={
-                                    t.auth.newPassword
-                                }
-                                value={password}
-                                onChange={(e) =>
-                                    setPassword(
-                                        e.target.value
-                                    )
-                                }
-                            />
+                                    <input
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) =>
+                                            setConfirmPassword(e.target.value)
+                                        }
+                                        autoComplete="new-password"
+                                        required
+                                    />
+                                </label>
 
-                            <input
-                                required
-                                type="password"
-                                minLength={6}
-                                placeholder={
-                                    t.auth.confirmPassword
-                                }
-                                value={
-                                    confirmPassword
-                                }
-                                onChange={(e) =>
-                                    setConfirmPassword(
-                                        e.target.value
-                                    )
-                                }
-                            />
+                                {error && (
+                                    <p className="auth-error">
+                                        {error}
+                                    </p>
+                                )}
 
-                            {message && (
-                                <div className="notice">
-                                    {message}
-                                </div>
-                            )}
-
-                            <button
-                                type="submit"
-                                className="button primary full"
-                                disabled={loading}
-                            >
-                                {loading
-                                    ? t.auth.loading
-                                    : t.auth
-                                        .resetPasswordButton}
-                            </button>
-                        </>
-                    )}
-
-                    {success && (
-                        <div className="notice">
-                            {message}
-                        </div>
-                    )}
-
-                    <Link
-                        to="/login"
-                        className="button full"
-                    >
-                        {t.auth.backToLogin}
-                    </Link>
-                </form>
+                                <button
+                                    type="submit"
+                                    className="auth-submit"
+                                    disabled={saving}
+                                >
+                                    {saving
+                                        ? language === 'uk'
+                                            ? 'Збереження...'
+                                            : language === 'pl'
+                                                ? 'Zapisywanie...'
+                                                : 'Saving...'
+                                        : language === 'uk'
+                                            ? 'Змінити пароль'
+                                            : language === 'pl'
+                                                ? 'Zmień hasło'
+                                                : 'Change password'}
+                                </button>
+                            </form>
+                        )}
+                    </div>
+                </div>
             </div>
         </main>
     );

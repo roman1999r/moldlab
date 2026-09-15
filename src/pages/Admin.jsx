@@ -2587,6 +2587,8 @@ export default function Admin() {
             |--------------------------------------------------------------------------
             */
 
+
+
             const payload = {
                 name: editing.name.trim(),
 
@@ -2601,10 +2603,6 @@ export default function Admin() {
                     ? Number(editing.old_price)
                     : null,
 
-                /*
-                 * Це поле залишаємо для сумісності
-                 * з твоєю старою таблицею.
-                 */
                 size: null,
 
                 cells:
@@ -2619,6 +2617,38 @@ export default function Admin() {
                 featured:
                     Boolean(editing.featured)
             };
+            // const payload = {
+            //     name: editing.name.trim(),
+            //
+            //     category_id: editing.category_id,
+            //
+            //     description:
+            //         editing.description?.trim() || null,
+            //
+            //     price: Number(editing.price),
+            //
+            //     old_price: editing.old_price
+            //         ? Number(editing.old_price)
+            //         : null,
+            //
+            //     /*
+            //      * Це поле залишаємо для сумісності
+            //      * з твоєю старою таблицею.
+            //      */
+            //     size: null,
+            //
+            //     cells:
+            //         Number(editing.cells) || 1,
+            //
+            //     image_url:
+            //         editing.image_url || null,
+            //
+            //     model_url:
+            //         editing.model_url || null,
+            //
+            //     featured:
+            //         Boolean(editing.featured)
+            // };
 
 
             let productId = editing.id;

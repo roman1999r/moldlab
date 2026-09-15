@@ -9414,3 +9414,134 @@ h2 em {
     }
 
 }
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-top: 40px;
+}
+
+.pagination-pages {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-pages button,
+.pagination-button {
+    border: 1px solid #d8d8d8;
+    background: transparent;
+    color: #222;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-pages button:hover:not(.active),
+.pagination-button:hover:not(:disabled) {
+    background: #f2f2f2;
+}
+
+.pagination-pages button.active {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+    font-weight: 600;
+}
+
+.pagination-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+
+
+.catalog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+
+.catalog-grid .size-button {
+    padding: 1px 7px;
+}
+
+.catalog-grid .product-card {
+    padding: 14px;
+}
+
+/* Область зображення */
+.catalog-grid .product-image {
+    width: 100%;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Сам товар */
+.catalog-grid .product-image-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+/* Якщо використовується 3D-модель */
+.catalog-grid .product-image > canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Планшет */
+@media (max-width: 1000px) {
+    .catalog-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .catalog-grid .product-image {
+        height: 200px;
+    }
+}
+
+/* Телефон */
+@media (max-width: 700px) {
+    .catalog-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .catalog-grid .product-card {
+        padding: 10px;
+    }
+
+    .catalog-grid .product-image {
+        height: 170px;
+    }
+}
+
+/* Маленький телефон */
+@media (max-width: 480px) {
+    .catalog-grid {
+        gap: 8px;
+    }
+
+    .catalog-grid .product-card {
+        padding: 8px;
+    }
+
+    .catalog-grid .product-image {
+        height: 140px;
+    }
+}
