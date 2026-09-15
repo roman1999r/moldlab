@@ -619,59 +619,59 @@ export default function App() {
      * -----------------------------------------
      */
 
-    function AuthRecoveryHandler() {
-        const navigate = useNavigate();
-
-        useEffect(() => {
-            let mounted = true;
-
-            async function handleRecovery() {
-                const url = new URL(window.location.href);
-                const code = url.searchParams.get('code');
-
-                if (!code) {
-                    return;
-                }
-
-                try {
-                    /*
-                     * НЕ обмінюємо code тут.
-                     *
-                     * ResetPassword.jsx зробить exchangeCodeForSession(),
-                     * тому що саме він відповідає за recovery.
-                     */
-
-                    if (!mounted) {
-                        return;
-                    }
-
-                    /*
-                     * HashRouter повинен отримати правильний маршрут.
-                     */
-                    navigate('/reset-password', { replace: true });
-                } catch (error) {
-                    console.error(
-                        'AUTH RECOVERY ROUTING ERROR:',
-                        error
-                    );
-
-                    if (mounted) {
-                        navigate('/forgot-password', {
-                            replace: true,
-                        });
-                    }
-                }
-            }
-
-            handleRecovery();
-
-            return () => {
-                mounted = false;
-            };
-        }, [navigate]);
-
-        return null;
-    }
+    // function AuthRecoveryHandler() {
+    //     const navigate = useNavigate();
+    //
+    //     useEffect(() => {
+    //         let mounted = true;
+    //
+    //         async function handleRecovery() {
+    //             const url = new URL(window.location.href);
+    //             const code = url.searchParams.get('code');
+    //
+    //             if (!code) {
+    //                 return;
+    //             }
+    //
+    //             try {
+    //                 /*
+    //                  * НЕ обмінюємо code тут.
+    //                  *
+    //                  * ResetPassword.jsx зробить exchangeCodeForSession(),
+    //                  * тому що саме він відповідає за recovery.
+    //                  */
+    //
+    //                 if (!mounted) {
+    //                     return;
+    //                 }
+    //
+    //                 /*
+    //                  * HashRouter повинен отримати правильний маршрут.
+    //                  */
+    //                 navigate('/reset-password', { replace: true });
+    //             } catch (error) {
+    //                 console.error(
+    //                     'AUTH RECOVERY ROUTING ERROR:',
+    //                     error
+    //                 );
+    //
+    //                 if (mounted) {
+    //                     navigate('/forgot-password', {
+    //                         replace: true,
+    //                     });
+    //                 }
+    //             }
+    //         }
+    //
+    //         handleRecovery();
+    //
+    //         return () => {
+    //             mounted = false;
+    //         };
+    //     }, [navigate]);
+    //
+    //     return null;
+    // }
 
 
     function addToCart(product, selectedSize = null) {
@@ -977,7 +977,7 @@ export default function App() {
                     <span>{cartNotification.message}</span>
                 </div>
             )}
-            <AuthRecoveryHandler />
+            {/*<AuthRecoveryHandler />*/}
             <Routes>
 
                 <Route

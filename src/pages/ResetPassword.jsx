@@ -18,36 +18,8 @@ export default function ResetPassword() {
     useEffect(() => {
         let mounted = true;
 
-        async function prepareRecovery() {
+        async function checkRecoverySession() {
             try {
-                const url = new URL(window.location.href);
-                const code = url.searchParams.get('code');
-
-                /*
-                 * Supabase PKCE recovery.
-                 * Обмінюємо одноразовий code на recovery session.
-                 */
-                if (code) {
-                    const { error: exchangeError } =
-                        await supabase.auth.exchangeCodeForSession(code);
-
-                    if (exchangeError) {
-                        throw exchangeError;
-                    }
-
-                    /*
-                     * Очищаємо ?code=..., але НЕ ламаємо HashRouter.
-                     */
-                    window.history.replaceState(
-                        {},
-                        document.title,
-                        `${window.location.pathname}${window.location.hash}`
-                    );
-                }
-
-                /*
-                 * Перевіряємо, що recovery session справді є.
-                 */
                 const {
                     data: { session },
                     error: sessionError,
@@ -65,7 +37,7 @@ export default function ResetPassword() {
                     setLoading(false);
                 }
             } catch (err) {
-                console.error('PASSWORD RECOVERY ERROR:', err);
+                console.error('PASSWORD RECOVERY SESSION ERROR:', err);
 
                 if (mounted) {
                     setError(
@@ -81,10 +53,17 @@ export default function ResetPassword() {
             }
         }
 
-        prepareRecovery();
+        /*
+         * Даємо Supabase трохи часу обробити
+         * recovery URL та створити session.
+         */
+        const timer = setTimeout(() => {
+            checkRecoverySession();
+        }, 300);
 
         return () => {
             mounted = false;
+            clearTimeout(timer);
         };
     }, [language]);
 
@@ -128,33 +107,35 @@ export default function ResetPassword() {
             }
 
             /*
-             * Після зміни пароля завершуємо recovery session.
-             * Користувач не залишається залогіненим.
+             * Важливо:
+             * після зміни пароля виходимо з recovery session,
+             * щоб користувач не залишався залогіненим.
              */
             await supabase.auth.signOut();
 
-            setSuccess(true);
+            if (mounted) {
+                setSuccess(true);
+            }
 
-            /*
-             * Даємо Supabase завершити signOut,
-             * після чого повертаємо користувача на login.
-             */
             setTimeout(() => {
                 navigate('/login', { replace: true });
             }, 1200);
         } catch (err) {
             console.error('PASSWORD UPDATE ERROR:', err);
 
-            setError(
-                err?.message ||
-                (language === 'uk'
-                    ? 'Не вдалося змінити пароль.'
-                    : language === 'pl'
-                        ? 'Nie udało się zmienić hasła.'
-                        : 'Failed to update password.')
-            );
+            if (mounted) {
+                setError(
+                    language === 'uk'
+                        ? 'Не вдалося змінити пароль.'
+                        : language === 'pl'
+                            ? 'Nie udało się zmienić hasła.'
+                            : 'Failed to update password.'
+                );
+            }
         } finally {
-            setSaving(false);
+            if (mounted) {
+                setSaving(false);
+            }
         }
     }
 
