@@ -441,6 +441,7 @@
 import { useLocation } from 'react-router-dom';
 
 import { trackPageView } from './lib/analytics';
+import { useNavigate } from 'react-router-dom';
 
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -616,6 +617,51 @@ export default function App() {
      * ADD TO CART
      * -----------------------------------------
      */
+
+    function AuthRecoveryHandler() {
+        const navigate = useNavigate();
+
+        useEffect(() => {
+            const params = new URLSearchParams(
+                window.location.search
+            );
+
+            const code = params.get('code');
+
+            if (!code) return;
+
+            async function exchangeCode() {
+                const { error } =
+                    await supabase.auth.exchangeCodeForSession(
+                        code
+                    );
+
+                if (error) {
+                    console.error(
+                        'AUTH RECOVERY ERROR:',
+                        error
+                    );
+
+                    return;
+                }
+
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    window.location.pathname
+                );
+
+                navigate('/reset-password', {
+                    replace: true,
+                });
+            }
+
+            exchangeCode();
+        }, [navigate]);
+
+        return null;
+    }
+
 
     function addToCart(product, selectedSize = null) {
         const normalizedSize =
@@ -920,7 +966,7 @@ export default function App() {
                     <span>{cartNotification.message}</span>
                 </div>
             )}
-
+            <AuthRecoveryHandler />
             <Routes>
 
                 <Route
