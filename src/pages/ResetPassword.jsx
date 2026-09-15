@@ -22,71 +22,51 @@ export default function ResetPassword() {
 
         async function prepareRecoverySession() {
             try {
-                /*
-                 * With PKCE Supabase sends:
-                 *
-                 * ?code=XXXXXXXX
-                 *
-                 * We must exchange that code for a session.
-                 */
-                const params = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(
+                    window.location.search
+                );
+
                 const code = params.get('code');
 
-                if (code) {
-                    const { error } =
-                        await supabase.auth.exchangeCodeForSession(code);
-
-                    if (error) {
-                        console.error(
-                            'EXCHANGE RECOVERY CODE ERROR:',
-                            error
-                        );
-
-                        if (mounted) {
-                            setMessage(t.auth.invalidResetLink);
-                            setCheckingSession(false);
-                        }
-
-                        return;
-                    }
-
-                    /*
-                     * Remove ?code=... from the URL.
-                     */
-                    window.history.replaceState(
-                        {},
-                        document.title,
-                        window.location.pathname + '#/reset-password'
-                    );
-
+                if (!code) {
                     if (mounted) {
-                        setReady(true);
+                        setMessage(t.auth.invalidResetLink);
                         setCheckingSession(false);
                     }
 
                     return;
                 }
 
-                /*
-                 * The Supabase client may already have created
-                 * the recovery session.
-                 */
-                const {
-                    data: { session },
-                } = await supabase.auth.getSession();
+                const { error } =
+                    await supabase.auth.exchangeCodeForSession(code);
 
-                if (!mounted) return;
+                if (error) {
+                    console.error(
+                        'RECOVERY CODE ERROR:',
+                        error
+                    );
 
-                if (session) {
-                    setReady(true);
-                } else {
-                    setMessage(t.auth.invalidResetLink);
+                    if (mounted) {
+                        setMessage(t.auth.invalidResetLink);
+                        setCheckingSession(false);
+                    }
+
+                    return;
                 }
 
-                setCheckingSession(false);
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    `${window.location.pathname}#/reset-password`
+                );
+
+                if (mounted) {
+                    setReady(true);
+                    setCheckingSession(false);
+                }
             } catch (error) {
                 console.error(
-                    'PREPARE RECOVERY SESSION ERROR:',
+                    'RECOVERY SESSION ERROR:',
                     error
                 );
 
@@ -99,31 +79,10 @@ export default function ResetPassword() {
 
         prepareRecoverySession();
 
-        /*
-         * Also listen for PASSWORD_RECOVERY.
-         */
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-                if (!mounted) return;
-
-                if (
-                    event === 'PASSWORD_RECOVERY' &&
-                    session
-                ) {
-                    setReady(true);
-                    setCheckingSession(false);
-                }
-            }
-        );
-
         return () => {
             mounted = false;
-            subscription.unsubscribe();
         };
     }, [t]);
-
     async function handleSubmit(e) {
         e.preventDefault();
 
