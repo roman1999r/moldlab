@@ -113,9 +113,9 @@ export default function ResetPassword() {
              */
             await supabase.auth.signOut();
 
-            if (mounted) {
-                setSuccess(true);
-            }
+            // if (mounted) {
+            //     setSuccess(true);
+            // }
 
             setTimeout(() => {
                 navigate('/login', { replace: true });
@@ -123,19 +123,15 @@ export default function ResetPassword() {
         } catch (err) {
             console.error('PASSWORD UPDATE ERROR:', err);
 
-            if (mounted) {
-                setError(
-                    language === 'uk'
-                        ? 'Не вдалося змінити пароль.'
-                        : language === 'pl'
-                            ? 'Nie udało się zmienić hasła.'
-                            : 'Failed to update password.'
-                );
-            }
+            setError(
+                language === 'uk'
+                    ? 'Не вдалося змінити пароль.'
+                    : language === 'pl'
+                        ? 'Nie udało się zmienić hasła.'
+                        : 'Failed to update password.'
+            );
         } finally {
-            if (mounted) {
-                setSaving(false);
-            }
+            setSaving(false);
         }
     }
 
